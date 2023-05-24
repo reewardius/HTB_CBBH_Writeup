@@ -1,0 +1,272 @@
+[HTML]
+
+[Question 1] What is the HTML tag used to show an image?
+
+    [Example] <img src="https://example.com/image.jpg" alt="A beautiful mountain landscape">
+
+        [?] "src" attribute specifies the URL of the image file
+
+        [?] "alt" attribute provides a textual description of the image
+
+    [!] Answer: "<img>"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Cascading Style Sheets (CSS)]
+
+[Question 1] What is the CSS "property: value" used to make an HTML element's text aligned to the left?
+
+    [Example] <p style="text-align: left;">This text will be aligned to the left.</p>
+
+        [?] "style" attribute is used to specify the text-align property with a value of left
+
+    [!] Answer: "text-align: left;" 
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Sensitive Data Exposure]
+
+[*] Target: 138.68.170.86:32535
+
+[Question 1] Check the above login form for exposed passwords. Submit the password as the answer.
+
+    -   Go to view-source:http://138.68.170.86:32535/ => "... <!-- TODO: remove test credentials admin:HiddenInPlainSight --> ..."
+
+    [!] Answer: "HiddenInPlainSight"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[HTML Injection]
+
+[*] Target: 157.245.38.221:30220
+
+[Question 1] What text would be displayed on the page if we use the following payload as our input: <a href="http://www.hackthebox.com">Click Me</a>
+
+    -   Go to view-source:http://157.245.38.221:30220/
+
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <button onclick="inputFunction()">Click to enter your name</button>
+            <p id="output"></p>
+
+            <script>
+                function inputFunction() {
+                    var input = prompt("Please enter your name", "");
+
+                    if (input != null) {
+                        document.getElementById("output").innerHTML = "Your name is " + input;
+                    }
+                }
+            </script>
+        </body>
+        </html>
+
+    =>  If I entered "Hung Thinh Tran" => "... <p id="output">Your name is Hung Thinh Tran</p> ..."
+
+    =>  When I entered "<a href="http://www.hackthebox.com">Click Me</a>"  => "... <p id="output">Your name is <a href="http://www.hackthebox.com">Click Me</a></p> ..."
+
+    [!] Answer: "Your name is Click Me"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Cross-Site Scripting (XSS)]
+
+[*] Target: 157.245.41.35:31955
+
+[Question 1] Try to use XSS to get the cookie value on the above page
+
+    -   Go to view-source:http://157.245.41.35:31955/
+
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <button onclick="inputFunction()">Click to enter your name</button>
+            <p id="output"></p>
+
+            <script>
+                function inputFunction() {
+                    var input = prompt("Please enter your name", "");
+
+                    if (input != null) {
+                        document.getElementById("output").innerHTML = "Your name is " + input;
+                    }
+                }
+            </script>
+        </body>
+        </html>
+
+    -   I entered "<img src=/phantom_path onerror=alert(document.cookie)>" => "... cookie=XSSisFun"
+
+        [?] "onerror" event handler is called whenever a JavaScript error occurs, allowing you to handle the error and prevent the script from crashing.
+
+        [?] Because "/phantom_path" does not exist so "src=/phantom_path" will be an error, "onerror" appears to handle this by running "alert(document.cookie)"
+
+    [!] Answer: "XSSisFun"  
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Back End Servers]
+
+[Question 1] What operating system is 'WAMP' used with?
+
+    -   There are many popular combinations of "stacks" for back-end servers, which contain a specific set of back-end components
+
+        [?] LAMP    <=>   Linux, Apache, MySQL, PHP.
+
+        [?] WAMP    <=>   Windows, Apache, MySQL, PHP.
+
+        [?] WINS    <=>   Windows, IIS, .NET, SQL Server
+
+        [?] MAMP    <=>   MacOS, Apache, MySQL, PHP.
+
+        [?] XAMPP   <=>   Cross-Platform, Apache, MySQL, PHP/PERL.
+
+    [!] Answer: "WAMP"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Web Servers]
+
+[Question 1]  If a web server returns an HTTP code 201, what does it stand for?
+
+    -   Here are some of the most common HTTP response codes:
+
+        [?] 200 OK: This response code indicates that the request has been successfully processed, and the server is returning the requested data.
+
+        [?] 201 Created: This response code is sent when a new resource has been successfully created on the server.
+
+        [?] 204 No Content: This response code is used to indicate that the server has successfully processed the request, but there is no content to return.
+
+        [?] 301 Moved Permanently: This response code is used to indicate that the requested resource has been permanently moved to a new location.
+
+        [?] 302 Found: This response code is used to indicate that the requested resource has been temporarily moved to a new location.
+
+        [?] 400 Bad Request: This response code is sent when the server is unable to understand the request due to malformed syntax or invalid parameters.
+
+        [?] 401 Unauthorized: This response code is sent when the user is not authorized to access the requested resource.
+
+        [?] 403 Forbidden: This response code is sent when the user is authenticated but not authorized to access the requested resource.
+
+        [?] 404 Not Found: This response code is sent when the requested resource could not be found on the server.
+
+        [?] 500 Internal Server Error: This response code is sent when the server encounters an unexpected condition that prevents it from fulfilling the request.
+
+    [!] Answer: "Created"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Databases]
+
+[Question 1]  What type of database is Google's Firebase Database?
+
+    [?] Relational (SQL) databases store their data in tables, rows, and columns. Each table can have unique keys, which can link tables together and create relationships between tables.
+
+    [?] Non-relational {NoSQL} databases do not use tables, rows, columns, primary keys, relationships, or schemas. Instead, a NoSQL database stores data using various storage models.
+
+    [Example of Google's Firebase configuration]
+
+        {
+        "messages": {
+            "-MfaDshwV7gTf1KjV7Jc": {
+            "username": "John",
+            "message": "Hello, world!",
+            "timestamp": 1620477428
+            },
+            "-MfaDxgwLZLLckJZ_rva": {
+            "username": "Jane",
+            "message": "Hi, there!",
+            "timestamp": 1620477461
+            }
+        }
+        }
+    
+        => This is a NoSQL database
+    
+    [!] Answer: "NoSQl"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Development Frameworks & APIs]
+
+[*] Target: 157.245.38.221:31557
+
+[Question 1] Use GET request '/index.php?id=0' to search for the name of the user with id number 1?
+
+    # curl -X GET http://157.245.38.221:31557/index.php?id=1 -i                              
+    
+        HTTP/1.1 200 OK
+        Date: Fri, 05 May 2023 04:35:59 GMT
+        Server: Apache/2.4.41 (Ubuntu)
+        Content-Length: 10
+        Content-Type: text/html; charset=UTF-8
+
+        superadmin
+
+    [!] Answer: "superadmin"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Common Web Vulnerabilities]
+
+[Question 1] To which of the above categories does public vulnerability 'CVE-2014-6271' belongs to?
+
+    -   Some common web vulnerabilities:
+
+        [?] Broken Authentication/Access Control is one of the most common and dangerous vulnerabilities for web applications
+            
+            => allow attackers to bypass authentication functions and gain access to pages and features they should not have access to.
+        
+        [?] Malicious file upload is another way to gain control over web applications by uploading malicious scripts
+            
+            =>  Allow attackers to execute commands on the remote server.
+
+        [?] Command injection is a vulnerability in which attackers can inject another command to be executed alongside the originally intended command, 
+        
+            =>  Allow attackers to directly execute commands on the back-end server and gain control over it.
+
+        [?] SQL Injection (SQLi) is another very common vulnerability in web applications, which may occur when the web application executes a SQL query, including a value taken from user-supplied input.
+
+            =>  Allow attackers to gather sensitive information in the database(s)
+
+    -   CVE-2014-6271, also known as "Shellshock," allows remote attackers to execute arbitrary code on the targeted system by exploiting a flaw in Bash's handling of environment variables
+        
+        => This vulnerability belongs to Command Injection
+
+    [!] Answer: "Command Injection" 
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Public Vulnerabilities]
+
+[Question 1] What is the CVSS score of the public vulnerability CVE-2017-0144?
+
+    -   Some information about CVE-2017-0144
+
+        [?] The Common Vulnerability Scoring System (CVSS) is a framework for assessing the severity of software vulnerabilities
+
+        [?] CVE-2017-0144 is a vulnerability in Microsoft Windows SMB Server that allows remote attackers to execute arbitrary code
+
+        [?] The CVSS score of CVE-2017-0144 is 9.3 out of 10 (Link: https://www.cvedetails.com/cve/CVE-2017-0144/)
+
+    [!] Answer: "9.3"

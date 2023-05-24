@@ -1,0 +1,153 @@
+[Source Code]
+
+[*] Target: 167.99.205.156:32441
+
+[Question 1] Repeat what you learned in this section, and you should find a secret flag, what is it?
+
+    -   Go to view-source:http://167.99.205.156:32441/ => "... <!-- HTB{4lw4y5_r34d_7h3_50urc3} --> ..."
+
+    [!] Answer: "HTB{4lw4y5_r34d_7h3_50urc3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Deobfuscation]
+
+[*] Target: 165.227.232.214:30048
+
+[Question 1] Using what you learned in this section, try to deobfuscate 'secret.js' to get the content of the flag. What is the flag?
+
+    -   Go to view-source:http://165.227.232.214:30048/, you will see <script src="secret.js"></script> which can direct you to http://165.227.232.214:30048/secret.js
+
+    =>  Hard to read right =)) you can use http://jsnice.org/ to nicify these code 
+
+        'use strict';
+        /**
+        * @return {undefined}
+        */
+        function generateSerial() {
+        /** @type {string} */
+        var flag = "HTB{1_4m_7h3_53r14l_g3n3r470r!}";
+        /** @type {!XMLHttpRequest} */
+        var xhr = new XMLHttpRequest;
+        /** @type {string} */
+        var url = "/serial.php";
+        xhr.open("POST", url, true);
+        xhr.send(null);
+        }
+        ;    
+
+    [!] Answer: "HTB{1_4m_7h3_53r14l_g3n3r470r!}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[HTTP Requests]
+
+[*] Target: 165.227.232.214:30048
+
+[Question 1] Try applying what you learned in this section by sending a 'POST' request to '/serial.php'. What is the response you get?
+
+    -   In the previous question, we found secret.js 's code right
+        
+            'use strict';
+            /**
+            * @return {undefined}
+            */
+            function generateSerial() {
+            /** @type {string} */
+            var flag = "HTB{1_4m_7h3_53r14l_g3n3r470r!}";
+            /** @type {!XMLHttpRequest} */
+            var xhr = new XMLHttpRequest;
+            /** @type {string} */
+            var url = "/serial.php";
+            xhr.open("POST", url, true);
+            xhr.send(null);
+            }
+            ; 
+
+    => Basically, it can generate a POST request to /serial.php, like this: 
+
+            POST /serial.php HTTP/1.1
+            Host: 165.227.232.214:30048
+            Content-Length: 0
+
+    => We can gather the responses from /serial.php using "curl -X POST http://165.227.232.214:30048/serial.php" => N2gxNV8xNV9hX3MzY3IzN19tMzU1NGcz
+
+    [!] Answer: "N2gxNV8xNV9hX3MzY3IzN19tMzU1NGcz"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Decoding]
+
+[*] Target: 165.227.232.214:30048
+
+[Question 1] Using what you learned in this section, determine the type of encoding used in the string you got in the previous exercise, and decode it. 
+             To get the flag, you can send a 'POST' request to 'serial.php', and set the data as "serial=YOUR_DECODED_OUTPUT".
+
+    -   Using Hash intifier tool I know that "N2gxNV8xNV9hX3MzY3IzN19tMzU1NGcz" is base64 encoded => decode it and you will have this 7h15_15_a_s3cr37_m3554g3 => 1337 speak =)) old but gold
+
+    # curl -X POST -d "serial=7h15_15_a_s3cr37_m3554g3" http://165.227.232.214:30048/serial.php
+        HTB{ju57_4n07h3r_r4nd0m_53r14l}
+
+    [!] Answer: "HTB{ju57_4n07h3r_r4nd0m_53r14l}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment]
+
+[*] Target: 165.227.232.214:30943 
+
+[Question 1] Try to study the HTML code of the webpage, and identify used JavaScript code within it. What is the name of the JavaScript file being used?
+
+    -   Go to view-source:http://165.227.232.214:30943/ => "... <script src="api.min.js"></script> ..."
+
+    [!] Answer: "api.min.js"
+
+[Question 2] Once you find the JavaScript code, try to run it to see if it does any interesting functions. Did you get something in return?
+
+    -   After nicify the code in api.min.js: 
+
+            'use strict';
+            function apiKeys() {
+            var flag = "HTB{n" + "3v3r_" + "run_0" + "bfu5c" + "473d_" + "c0d3!" + "}";
+            var xhr = new XMLHttpRequest;
+            var url = "/keys" + ".php";
+            xhr["open"]("POST", url, !![]);
+            xhr["send"](null);
+            }
+            console["log"]("HTB{j" + "4v45c" + "r1p7_" + "3num3" + "r4710" + "n_15_" + "k3y}");
+
+    => This code has apiKeys function but doesn't use it, it just prints out HTB{j4v45cr1p7_3num3r4710n_15_k3y}
+
+    [!] Answer: "HTB{j4v45cr1p7_3num3r4710n_15_k3y}"
+
+[Question 3] As you may have noticed, the JavaScript code is obfuscated. Try applying the skills you learned in this module to deobfuscate the code and retrieve the 'flag' variable.
+
+    -   I already nicify these codes in the previous question, as you can see there is "flag" variable equal to "HTB{n3v3r_run_0bfu5c473d_c0d3!}"
+
+    [!] Answer: "HTB{n3v3r_run_0bfu5c473d_c0d3!}"
+
+[Question 4] Try to Analyze the deobfuscated JavaScript code, and understand its main functionality. Once you do, try to replicate what it's doing to get a secret key. What is the key?
+
+    -   Nah! Its main functionality is just to send a POST request to /keys.php =)) Nothing special
+
+    # curl -X POST http://165.227.232.214:30943/keys.php => 4150495f70336e5f37333537316e365f31355f66756e
+
+    [!] Answer: "4150495f70336e5f37333537316e365f31355f66756e"
+
+[Question 5] Once you have the secret key, try to decide its encoding method, and decode it. Then send a 'POST' request to the same previous page with the decoded key as "key=DECODED_KEY". What is the flag you got?
+
+    -   Using the Hash Identifier tool, I found that "4150495f70336e5f37333537316e365f31355f66756e" is hex encoded => decode it you will have "API_p3n_73571n6_15_fun"
+
+    -   Now let sent our result to keys.php
+
+    # curl -X POST -d "key=API_p3n_73571n6_15_fun" http://165.227.232.214:30943/keys.php => HTB{r34dy_70_h4ck_my_w4y_1n_2_HTB}
+
+    [!] Answer: "HTB{r34dy_70_h4ck_my_w4y_1n_2_HTB}"

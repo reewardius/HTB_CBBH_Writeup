@@ -1,0 +1,648 @@
+[Directory Fuzzing]
+
+[*] Target: 167.71.139.119:31768
+
+[Question 1] In addition to the directory we found above, there is another directory that can be found (We already found the "blog" directory). What is it?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt:BRUTE-FORCE-TARGET -u http://167.71.139.119:31768/BRUTE-FORCE-TARGET
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://167.71.139.119:31768/BRUTE-FORCE-TARGET
+    :: Wordlist         : BRUTE-FORCE-TARGET: /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    forum                   [Status: 301, Size: 325, Words: 20, Lines: 10, Duration: 3ms]
+    blog                    [Status: 301, Size: 324, Words: 20, Lines: 10, Duration: 185ms]
+    ...
+
+    [!] Answer: forum
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Page Fuzzing]
+
+[*] Target: 178.128.169.240:31263
+
+[Question 2] Try to use what you learned in this section to fuzz the '/blog' directory and find all ".php" pages. One of them should contain a flag. What is the flag?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt:FUZZ -u http://165.232.106.185:31637/blog/FUZZ -e .php
+
+    [?] -e <Extensions>: Specifies the file extensions to use when testing for files
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://165.232.106.185:31637/blog/FUZZ
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt
+    :: Extensions       : .php 
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    index.php               [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 24ms]
+    home.php                [Status: 200, Size: 1046, Words: 438, Lines: 58, Duration: 524ms]
+    ...
+
+    => Go to http://165.232.106.185:31637/blog/home.php => "... HTB{bru73_f0r_c0mm0n_p455w0rd5}"
+
+    [!] Answer: "HTB{bru73_f0r_c0mm0n_p455w0rd5}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Recursive Fuzzing]
+
+[*] Target: 165.227.232.214:30055
+
+[Question 1] Try to repeat what you learned so far to find more files/directories. One of them should give you a flag. What is the content of the flag?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/DNS/directory-list-2.3-small.txt:FUZZ -u http://165.227.232.214:30055/FUZZ -recursion -recursion-depth 1 -e .php -v
+
+    [?] -recursion: tells ffuf to follow links within the same domain during testing
+
+    [?] -recursion-depth: specifies the maximum recursion depth to use
+    
+            Example: 
+
+                $ ffuf -u http://165.227.232.214:30055/FUZZ -w directory-list-2.3-small.txt -e .php -recursion -recursion-depth 1 -v
+
+                ...
+                + http://165.227.232.214:30055/phpinfo.php (Status: 200)
+                + http://165.227.232.214:30055/robots.txt (Status: 200)
+                + http://165.227.232.214:30055/test.php (Status: 200)
+                + http://165.227.232.214:30055/webalizer/ (Status: 200)
+                ...
+
+                $ ffuf -u http://165.227.232.214:30055/FUZZ -w directory-list-2.3-small.txt -e .php -recursion -recursion-depth 2 -v
+
+                ...
+                + http://165.227.232.214:30055/forum/ (Status: 200)
+                + http://165.227.232.214:30055/forum/flag.php (Status: 200)
+                + http://165.227.232.214:30055/forum/index.php (Status: 200)
+                + http://165.227.232.214:30055/forum/login.php (Status: 200)
+                ...
+    [?] ffuf may be able to discover files and directories that are deeper than the specified recursion depth. However, this behavior is not guaranteed and may not be present on all web servers.
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://165.227.232.214:30055/FUZZ
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/DNS/directory-list-2.3-small.txt
+    :: Extensions       : .php 
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    [Status: 200, Size: 986, Words: 423, Lines: 56, Duration: 4ms]
+    | URL | http://165.227.232.214:30055/index.php
+        * FUZZ: index.php
+
+    [Status: 301, Size: 327, Words: 20, Lines: 10, Duration: 1ms]
+    | URL | http://165.227.232.214:30055/forum
+    | --> | http://165.227.232.214:30055/forum/
+        * FUZZ: forum
+
+    [INFO] Adding a new job to the queue: http://165.227.232.214:30055/forum/FUZZ
+
+    [Status: 301, Size: 326, Words: 20, Lines: 10, Duration: 366ms]
+    | URL | http://165.227.232.214:30055/blog
+    | --> | http://165.227.232.214:30055/blog/
+        * FUZZ: blog
+
+    [INFO] Adding a new job to the queue: http://165.227.232.214:30055/blog/FUZZ
+
+    ...
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 10ms]
+    | URL | http://165.227.232.214:30055/forum/index.php
+        * FUZZ: index.php
+
+    [Status: 200, Size: 21, Words: 1, Lines: 1, Duration: 5ms]
+    | URL | http://165.227.232.214:30055/forum/flag.php
+        * FUZZ: flag.php
+
+    ...
+
+    # curl http://165.227.232.214:30055/forum/flag.php -i
+
+        HTTP/1.1 200 OK
+        Date: Sat, 13 May 2023 01:53:15 GMT
+        Server: Apache/2.4.41 (Ubuntu)
+        Content-Length: 21
+        Content-Type: text/html; charset=UTF-8
+
+        HTB{fuzz1n6_7h3_w3b!}
+
+    [!] Answer: "HTB{fuzz1n6_7h3_w3b!}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Sub-domain Fuzzing]
+
+[Question 1] HackTheBox has an online Swag Shop. Try running a sub-domain fuzzing test on 'hackthebox.eu' to find it. What is the full domain of it?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ -u https://FUZZ.hackthebox.eu/
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : https://FUZZ.hackthebox.eu/
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    forum                   [Status: 301, Size: 0, Words: 1, Lines: 1, Duration: 15ms]
+    www                     [Status: 301, Size: 0, Words: 1, Lines: 1, Duration: 19ms]
+    dev                     [Status: 302, Size: 0, Words: 1, Lines: 1, Duration: 18ms]
+    forums                  [Status: 301, Size: 0, Words: 1, Lines: 1, Duration: 20ms]
+    store                   [Status: 301, Size: 0, Words: 1, Lines: 1, Duration: 37ms]
+    help                    [Status: 301, Size: 0, Words: 1, Lines: 1, Duration: 15ms]
+    ...
+
+    => store.hackthebox.eu will redirect us to https://hackthebox.store/
+
+    [!] Answer: "store.hackthebox.eu"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Filtering Results]
+
+[*] Target: 165.227.232.214:32032
+
+[Question 1] Try running a VHost fuzzing scan on 'academy.htb', and see what other VHosts you get. What other VHosts did you get (they already found "admin")?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ -u https://165.227.232.214:32032/ -H "Host: FUZZ.academy.htb" -fs 986
+
+    [?] -fs: -fs option in ffuf filters responses based on their size (Why 986 ? Believe me, I tried, and there were tons of subdomains)
+ 
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://165.227.232.214:32032/
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt
+    :: Header           : Host: FUZZ.academy.htb
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 986
+    ________________________________________________
+
+    test                    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 632ms]
+    admin                   [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 1247ms]
+    
+    [!] Answer: "test.academy.htb"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Parameter Fuzzing - GET]  
+
+[*] Target: 138.68.139.144:31682/admin/admin.php & VHost: admin.academy.htb
+
+[Question 1] Using what you learned in this section, run a parameter fuzzing scan on this page. what is the parameter accepted by this webpage?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ -u http://138.68.139.144:31682/admin/admin.php?FUZZ=random -H "Host: admin.academy.htb"
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+       v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://138.68.139.144:31682/admin/admin.php?FUZZ=random
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/Web-Content/burp-parameter-names.txt
+    :: Header           : Host: admin.academy.htb
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 798
+    ________________________________________________
+
+    user                    [Status: 200, Size: 783, Words: 221, Lines: 54, Duration: 2ms]
+    :: Progress: [2588/2588] :: Job [1/1] :: 12212 req/sec :: Duration: [0:00:04] :: Errors: 0 ::
+
+    [!] Answer: "user"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Value Fuzzing]
+
+[*] Target: 138.68.139.144:31682/admin/admin.php & VHost: admin.academy.htb
+
+[Question 1] Try to create the 'ids.txt' wordlist, identify the accepted value (for "id" parameter) with a fuzzing scan, and then use it in a 'POST' request with 'curl' to collect the flag. What is the content of the flag?
+
+[Step 1] Create 'ids.txt' wordlist 
+
+    # for i in $(seq 1 10000); do echo $i >> ids.txt; done => Now we have ids.txt that contains 1 to 10000
+
+[Step 2] Fuzzing
+
+    # ffuf -w ids.txt:FUZZ -u http://138.68.139.144:31682/admin/admin.php -X POST -d 'id=FUZZ' -H "Host: admin.academy.htb" -H 'Content-Type: application/x-www-form-urlencoded' -fs 768
+
+    [?] In PHP, "POST" data "content-type" can only accept "application/x-www-form-urlencoded". 
+
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : POST
+    :: URL              : http://138.68.139.144:31682/admin/admin.php
+    :: Wordlist         : FUZZ: ids.txt
+    :: Header           : Host: admin.academy.htb
+    :: Header           : Content-Type: application/x-www-form-urlencoded
+    :: Data             : id=FUZZ
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 768
+    ________________________________________________
+
+    73                      [Status: 200, Size: 787, Words: 218, Lines: 54, Duration: 3ms]
+    :: Progress: [10000/10000] :: Job [1/1] :: 7428 req/sec :: Duration: [0:00:12] :: Errors: 0 ::
+
+    # curl http://138.68.139.144:31682/admin/admin.php -d "id=73" -H "Host: admin.academy.htb" -H 'Content-Type: application/x-www-form-urlencoded' -i
+
+        HTTP/1.1 200 OK
+        Date: Sat, 13 May 2023 04:47:36 GMT
+        Server: Apache/2.4.41 (Ubuntu)
+        Vary: Accept-Encoding
+        Content-Length: 787
+        Content-Type: text/html; charset=UTF-8
+
+        <div class='center'><p>HTB{p4r4m373r_fuzz1n6_15_k3y!}</p></div>
+        <html>
+        <!DOCTYPE html>
+        ...
+
+    [!] Answer: "HTB{p4r4m373r_fuzz1n6_15_k3y!}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment - Web Fuzzing] 
+
+Target: 178.128.169.240:30301
+
+[Question 1] Run a sub-domain/vhost fuzzing scan on '*.academy.htb' for the IP shown above. What are all the sub-domains you can identify? (Only write the sub-domain name)
+
+    # ffuf -w /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt:FUZZ -u http://178.128.169.240:30301/ -H "Host: FUZZ.academy.htb" -fs 985
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://178.128.169.240:30301/
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/DNS/subdomains-top1million-5000.txt
+    :: Header           : Host: FUZZ.academy.htb
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 985
+    ________________________________________________
+
+    test                    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 3ms]
+    archive                 [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 2ms]
+    faculty                 [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 85ms]
+    :: Progress: [4997/4997] :: Job [1/1] :: 518 req/sec :: Duration: [0:00:04] :: Errors: 0 ::
+
+    [!] Answer: "test, archive, faculty"
+
+[Question 2] Before you run your page fuzzing scan, you should first run an extension fuzzing scan. What are the different extensions accepted by the domains?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/web-extensions.txt:FUZZ -w Subdomains.txt:SUB -u http://178.128.169.240:30301/indexFUZZ -H "Host: SUB.academy.htb"
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://178.128.169.240:30301/indexFUZZ
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/Web-Content/web-extensions.txt
+    :: Wordlist         : SUB: Subdomains.txt
+    :: Header           : Host: SUB.academy.htb
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 1ms]
+        * FUZZ: .phps
+        * SUB: archive
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 1ms]
+        * SUB: faculty
+        * FUZZ: .phps
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 11ms]
+        * FUZZ: .php7
+        * SUB: faculty
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 21ms]
+        * SUB: archive
+        * FUZZ: .php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 13ms]
+        * FUZZ: .php
+        * SUB: faculty
+
+    [Status: 403, Size: 281, Words: 20, Lines: 10, Duration: 4003ms]
+        * FUZZ: .phps
+        * SUB: test
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 5013ms]
+        * SUB: test
+        * FUZZ: .php
+
+    [!] Answer: ".php, .phps, .php7" 
+
+[Question 3]  One of the pages you will identify should say 'You don't have access!'. What is the full-page URL?
+
+[#] Ultimate command for this question but it would take hours (Subdomains.txt contains 3 subdomains we found in the previous question): 
+
+    # ffuf -w directory-list-2.3-small.txt:FUZZ -w Subdomains.txt:SUB -u http://178.128.169.240:30301/FUZZ -H "Host: SUB.academy.htb" -recursion -recursion-depth 3 -e .php,.php7,.phps -v -c "You don't have access"
+
+[#] So I tried with "faculty" subdomain first (as you can see in the previous question ".php" & ".php7" are available with "faculty" subdomain)
+
+    # ffuf -w directory-list-2.3-small.txt:FUZZ -u http://178.128.169.240:30301/FUZZ -H "Host: faculty.academy.htb" -recursion -recursion-depth 1 -e .php,.php7 -v -c "You don't have access"
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://178.128.169.240:30301/FUZZ
+    :: Wordlist         : FUZZ: directory-list-2.3-small.txt
+    :: Header           : Host: faculty.academy.htb
+    :: Extensions       : .php .php7 
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/index.php7
+        * FUZZ: index.php7
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/.php
+        * FUZZ: .php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 2ms]
+    | URL | http://178.128.169.240:30301/index.php
+        * FUZZ: index.php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/
+        * FUZZ: 
+
+    [Status: 301, Size: 328, Words: 20, Lines: 10, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/courses
+    | --> | http://faculty.academy.htb/courses/
+        * FUZZ: courses
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/.php
+        * FUZZ: .php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 5ms]
+    | URL | http://178.128.169.240:30301/
+        * FUZZ: 
+
+    => After checked for all pages 's content, I did'nt find what we need, but http://178.128.169.240:30301/courses responded 301 (redirect) which is a good signal, we can continue fuzzing it
+
+    # ffuf -w directory-list-2.3-small.txt:FUZZ -u http://178.128.169.240:30301/courses/FUZZ -H "Host: faculty.academy.htb" -recursion -recursion-depth 1 -e .php,.php7 -v -c "You don't have access"
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : GET
+    :: URL              : http://178.128.169.240:30301/courses/FUZZ
+    :: Wordlist         : FUZZ: directory-list-2.3-small.txt
+    :: Header           : Host: faculty.academy.htb
+    :: Extensions       : .php .php7 
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    ________________________________________________
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 3ms]
+    | URL | http://178.128.169.240:30301/courses/.php
+        * FUZZ: .php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 4ms]
+    | URL | http://178.128.169.240:30301/courses/index.php7
+        * FUZZ: index.php7
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 4ms]
+    | URL | http://178.128.169.240:30301/courses/index.php
+        * FUZZ: index.php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 5ms]
+    | URL | http://178.128.169.240:30301/courses/
+        * FUZZ: 
+
+    [Status: 200, Size: 774, Words: 223, Lines: 53, Duration: 3ms]
+    | URL | http://178.128.169.240:30301/courses/linux-security.php7
+        * FUZZ: linux-security.php7
+
+    [Status: 403, Size: 284, Words: 20, Lines: 10, Duration: 1ms]
+    | URL | http://178.128.169.240:30301/courses/.php
+        * FUZZ: .php
+
+    [Status: 200, Size: 0, Words: 1, Lines: 1, Duration: 2ms]
+    | URL | http://178.128.169.240:30301/courses/
+        * FUZZ: 
+
+    => curl http://178.128.169.240:30301/courses/linux-security.php7 -H "Host: faculty.academy.htb" => "... You don't have access!' ..."
+
+    [!] Answer: "http://faculty.academy.htb:PORT/courses/linux-security.php7"
+
+[Question 4] In the page from the previous question, you should be able to find multiple parameters that are accepted by the page. What are they?
+
+    # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/burp-parameter-names.txt:FUZZ -u http://178.128.169.240:30301/courses/linux-security.php7 -X POST -H "Host: faculty.academy.htb" -d 'FUZZ=key' -H 'Content-Type: application/x-www-form-urlencoded' -fs 774
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : POST
+    :: URL              : http://178.128.169.240:30301/courses/linux-security.php7
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/Web-Content/burp-parameter-names.txt
+    :: Header           : Host: faculty.academy.htb
+    :: Header           : Content-Type: application/x-www-form-urlencoded
+    :: Data             : FUZZ=key
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 774
+    ________________________________________________
+
+    user                    [Status: 200, Size: 780, Words: 223, Lines: 53, Duration: 2ms]
+    username                [Status: 200, Size: 781, Words: 223, Lines: 53, Duration: 2ms]
+    :: Progress: [2588/2588] :: Job [1/1] :: 11294 req/sec :: Duration: [0:00:01] :: Errors: 0 ::
+
+    [!] Answer: "user, username" 
+
+[Question 5] Try fuzzing the parameters you identified for working values. One of them should return a flag. What is the content of the flag?
+
+    # ffuf -w /opt/useful/SecLists/Usernames/Names/names.txt:FUZZ -u http://178.128.169.240:30301/courses/linux-security.php7 -X POST -H "Host: faculty.academy.htb" -d 'username=FUZZ' -H 'Content-Type: application/x-www-form-urlencoded' -fs 781
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+        v1.4.1-dev
+    ________________________________________________
+
+    :: Method           : POST
+    :: URL              : http://178.128.169.240:30301/courses/linux-security.php7
+    :: Wordlist         : FUZZ: /opt/useful/SecLists/Usernames/Names/names.txt
+    :: Header           : Host: faculty.academy.htb
+    :: Header           : Content-Type: application/x-www-form-urlencoded
+    :: Data             : username=FUZZ
+    :: Follow redirects : false
+    :: Calibration      : false
+    :: Timeout          : 10
+    :: Threads          : 40
+    :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+    :: Filter           : Response size: 781
+    ________________________________________________
+
+    harry                   [Status: 200, Size: 773, Words: 218, Lines: 53, Duration: 1ms]
+    :: Progress: [10164/10164] :: Job [1/1] :: 6545 req/sec :: Duration: [0:00:15] :: Errors: 0 ::
+
+    # curl http://178.128.169.240:30301/courses/linux-security.php7 -X POST -H "Host: faculty.academy.htb" -d 'username=harry' -H 'Content-Type: application/x-www-form-urlencoded' => "... HTB{w3b_fuzz1n6_m4573r} ..."
+
+    [!] Answer: "HTB{w3b_fuzz1n6_m4573r}"

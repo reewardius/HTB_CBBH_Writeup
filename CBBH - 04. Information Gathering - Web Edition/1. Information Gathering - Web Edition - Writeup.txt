@@ -1,0 +1,498 @@
+[WHOIS]
+
+[Question 1] Perform a WHOIS lookup against the paypal.com domain. What is the registrant Internet Assigned Numbers Authority (IANA) ID number?
+
+    # whois paypal.com                  
+    
+    Domain Name: PAYPAL.COM
+    Registry Domain ID: 8017040_DOMAIN_COM-VRSN
+    ...
+    Registrar IANA ID: 292
+    ...
+
+    [!] Answer: "292"
+
+[Question 2] What is the admin email contact for the netflix.com domain (also in scope for the Netflix bug bounty program)?
+
+    # whois netflix.com                 
+    
+    Domain Name: NETFLIX.COM
+    Registry Domain ID: 1404215_DOMAIN_COM-VRSN
+    ...
+    Admin Email: nicadmin@netflix.com
+    ...
+
+    [!] Answer: "nicadmin@netflix.com"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[DNS]
+
+[Question 1] Which IP address maps to inlanefreight.com?
+
+    # dig a inlanefreight.com        
+
+    [?] dig a $TARGET @<nameserver/IP>: Identify the A record (record maps a domain name to an IPv4 address) for the target domain.                   
+
+        ...
+
+        ;; ANSWER SECTION:
+        inlanefreight.com.      300     IN      A       134.209.24.248
+
+        ;; Query time: 204 msec
+        ;; SERVER: 203.113.131.2#53(203.113.131.2) (UDP)
+        ;; WHEN: Sun May 07 00:18:57 EDT 2023
+        ;; MSG SIZE  rcvd: 90
+
+    [!] Answer: "134.209.24.248"
+
+[Question 2]  Which subdomain is returned when querying the PTR record for 173.0.87.51?
+
+    # nslookup -query=PTR 173.0.87.51
+
+    [?] nslookup -query=PTR <IP>: Identify the PTR record (also known as a pointer record, is a type of DNS record that maps an IP address to a domain name) for the target IP address 
+
+        Server:         203.113.131.2
+        Address:        203.113.131.2#53
+
+        Non-authoritative answer:
+        51.87.0.173.in-addr.arpa        name = cloudmonitor30.paypal.com.
+
+        Authoritative answers can be found from:
+
+    [!] Answer: "cloudmonitor30.paypal.com"
+
+[Question 3] What is the first mailserver returned when querying the MX records for paypal.com?
+
+    # dig mx paypal.com @8.8.8.8
+
+    [?] dig mx $TARGET @<nameserver/IP>: Identify the MX records (type of DNS record that specifies the mail server responsible for accepting email messages on behalf of a domain) for the target domain.
+    
+    [?] "@8.8.8.8" : Specifying the DNS server to use for the DNS lookup (or you can use 1.1.1.1 _ Cloudfare).
+        ...
+
+        ;; ANSWER SECTION:
+        paypal.com.             3600    IN      MX      10 mx2.paypalcorp.com.
+        paypal.com.             3600    IN      MX      10 mx1.paypalcorp.com.
+
+        ;; Query time: 32 msec
+        ;; SERVER: 203.113.131.2#53(203.113.131.2) (UDP)
+        ;; WHEN: Sun May 07 00:53:25 EDT 2023
+        ;; MSG SIZE  rcvd: 121
+
+    [!] Answer: "mx1.paypalcorp.com"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Active Infrastructure Identification]
+
+[*] Target: 10.129.16.163
+
+[*] vHosts needed for these questions:
+    1. app.inlanefreight.local
+    2. dev.inlanefreight.local
+
+[Question 1] What Apache version is running on app.inlanefreight.local? (Format: 0.0.0)
+
+    [#] I know, I know! you are stuck on here right, you are thinking "How? I can't access these vHosts even from my Parrot instance"
+        My friends, all you need to do is follow my tutorial
+
+    [Tutorial] As you already know, the path of DNS goes through tons of things (like IPS, root server, TLD server ...), and in this case it just a temporary target in HTB 's Network
+               So you can't just normally search this domain like any other domain => you should configure /etc/hosts a little bit
+
+                127.0.0.1       localhost
+                127.0.1.1       kali
+                10.129.16.163   app.inlanefreight.local
+                10.129.16.163   dev.inlanefreight.local
+
+                # The following lines are desirable for IPv6 capable hosts
+                ::1     localhost ip6-localhost ip6-loopback
+                ff02::1 ip6-allnodes
+                ff02::2 ip6-allrouters
+
+            => I think you understand this =)) 
+
+    # curl app.inlanefreight.local -I
+        
+        HTTP/1.1 200 OK
+        Date: Sun, 07 May 2023 06:59:50 GMT
+        Server: Apache/2.4.41 (Ubuntu)
+        ...
+
+    [!] Answer: "2.4.41"
+
+[Question 2]  Which CMS is used on app.inlanefreight.local? (Format: word)
+
+    -   Download Wappalyzer extension then check for the technologies of the web you are visiting (in this case is app.inlanefreight.local) => "CMS": "Joomla"
+
+    [!] Answer: "Joomla"
+
+[Question 3]  On which operating system is the dev.inlanefreight.local webserver running on? (Format: word)
+
+    -   Download Wappalyzer extension then check for the technologies of the web you are visiting (in this case is dev.inlanefreight.local) => "Operating systems": "Ubuntu"
+
+    [!] Answer: "Ubuntu"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Active Subdomain Enumeration]
+
+[*] Target: 10.129.222.149
+
+[Question 1] Submit the FQDN of the nameserver for the "inlanefreight.htb" domain as the answer.
+
+    -   As you already know FDQN = hostname + second-level domain + top-level domain
+
+        => So I need to find name server of inlanefreight.htb
+
+    # dig ns inlanefreight.htb @10.129.222.149
+
+        ...
+
+        ;; ANSWER SECTION:
+        inlanefreight.htb.      604800  IN      NS      ns.inlanefreight.htb.
+
+        ;; ADDITIONAL SECTION:
+        ns.inlanefreight.htb.   604800  IN      A       127.0.0.1
+
+        ;; Query time: 212 msec
+        ;; SERVER: 10.129.222.149#53(10.129.222.149) (UDP)
+        ;; WHEN: Mon May 08 04:07:46 EDT 2023
+        ;; MSG SIZE  rcvd: 107
+            
+    [!] Answer: "ns.inlanefreight.htb"
+
+[Question 2] Identify how many zones exist on the target nameserver. Submit the number of found zones as the answer.
+
+    -   So "the zone transfer is how a secondary DNS server receives information from the primary DNS server and updates it" right
+
+        => AXFR (short for "Authority Transfer") is a type of DNS zone transfer that allows a secondary DNS server to retrieve a complete copy of a DNS zone file from the primary DNS server
+
+    (Note: IXFR is an optimized version of the AXFR protocol, which only transfers the changes (or "incremental updates") to the DNS zone file since the last transfer)
+
+    # dig axfr inlanefreight.htb @10.129.222.149
+
+        ; <<>> DiG 9.18.12-1-Debian <<>> axfr inlanefreight.htb @10.129.222.149
+        ;; global options: +cmd
+        inlanefreight.htb.      604800  IN      SOA     inlanefreight.htb. root.inlanefreight.htb. 2 604800 86400 2419200 604800
+        inlanefreight.htb.      604800  IN      NS      ns.inlanefreight.htb.
+        ...
+        internal.inlanefreight.htb. 604800 IN   A       127.0.0.1
+        ...
+        ns.inlanefreight.htb.   604800  IN      A       127.0.0.1
+        ...
+        inlanefreight.htb.      604800  IN      SOA     inlanefreight.htb. root.inlanefreight.htb. 2 604800 86400 2419200 604800
+        ...
+
+    =>  There are 2 zones exist on the target nameserver (internal.inlanefreight.htb &  ns.inlanefreight.htb)
+
+        [?] ns.inlanefreight.htb is the public one => We can easily find it with NS record
+
+        [?] internal.inlanefreight.htb is the private one, which only be used in the private network (just look at its name "internal")
+
+    [!] Answer: "2"
+
+[Question 3] Find and submit the contents of the TXT record as the answer.
+
+    # dig txt internal.inlanefreight.htb @10.129.222.149
+
+    (Nah! I tried the same thing with ns.inlanefreight.htb but there was nothing)
+
+    [?] "TXT" record: a type of DNS record used to provide additional information about a domain name
+
+        ...
+
+        ;; ANSWER SECTION:
+        internal.inlanefreight.htb. 604800 IN   TXT     "ZONE_TRANSFER{87o2z3cno7zsoiedznxoi82z3o47xzhoi}"
+
+        ;; Query time: 220 msec
+        ;; SERVER: 10.129.222.149#53(10.129.222.149) (UDP)
+        ;; WHEN: Mon May 08 04:57:24 EDT 2023
+        ;; MSG SIZE  rcvd: 144
+
+    [!] Answer: "ZONE_TRANSFER{87o2z3cno7zsoiedznxoi82z3o47xzhoi}"
+
+[Question 4] What is the FQDN of the IP address 10.10.34.136?
+
+    -   As you already know "10.129.222.149" is the only IP we can ping
+
+        => So 10.10.34.136 is in the private network
+
+    # dig axfr internal.inlanefreight.htb @10.129.222.149 | grep 10.10.34.136
+
+        ns2.internal.inlanefreight.htb. 604800 IN A     10.10.34.136
+
+    [!] Answer: "ns2.internal.inlanefreight.htb"
+
+[Question 5] What FQDN is assigned to the IP address 10.10.1.5? Submit the FQDN as the answer.
+
+    # dig axfr internal.inlanefreight.htb @10.129.222.149 | grep 10.10.1.5   
+        dc3.internal.inlanefreight.htb. 604800 IN A     10.10.1.5
+
+    [!] Answer: "dc3.internal.inlanefreight.htb"
+
+[Question 6] Which IP address is assigned to the "us.inlanefreight.htb" subdomain. Submit the IP address as the answer.
+
+    # dig axfr inlanefreight.htb @10.129.222.149 | grep us.inlanefreight.htb 
+        us.inlanefreight.htb.   604800  IN      A       10.10.200.5
+        cluster14.us.inlanefreight.htb. 604800 IN A     10.10.200.14
+        messagecenter.us.inlanefreight.htb. 604800 IN A 10.10.200.10
+
+    [!] Answer: "10.10.200.5" 
+
+[Question 7]  Submit the number of all "A" records from all zones as the answer.
+
+    admin.inlanefreight.htb. 604800 IN      A       10.10.34.2
+    ftp.admin.inlanefreight.htb. 604800 IN  A       10.10.34.2
+    careers.inlanefreight.htb. 604800 IN    A       10.10.34.50
+    dc1.inlanefreight.htb.  604800  IN      A       10.10.34.16
+    dc2.inlanefreight.htb.  604800  IN      A       10.10.34.11
+    internal.inlanefreight.htb. 604800 IN   A       127.0.0.1
+    admin.internal.inlanefreight.htb. 604800 IN A   10.10.1.11
+    wsus.internal.inlanefreight.htb. 604800 IN A    10.10.1.240
+    ir.inlanefreight.htb.   604800  IN      A       10.10.45.5
+    dev.ir.inlanefreight.htb. 604800 IN     A       10.10.45.6
+    ns.inlanefreight.htb.   604800  IN      A       127.0.0.1
+    resources.inlanefreight.htb. 604800 IN  A       10.10.34.100
+    securemessaging.inlanefreight.htb. 604800 IN A  10.10.34.52
+    test1.inlanefreight.htb. 604800 IN      A       10.10.34.101
+    us.inlanefreight.htb.   604800  IN      A       10.10.200.5
+    cluster14.us.inlanefreight.htb. 604800 IN A     10.10.200.14
+    messagecenter.us.inlanefreight.htb. 604800 IN A 10.10.200.10
+    ww02.inlanefreight.htb. 604800  IN      A       10.10.34.112
+    www1.inlanefreight.htb. 604800  IN      A       10.10.34.111
+    dev.admin.internal.inlanefreight.htb. 604800 IN A 10.10.1.2
+    panel.admin.internal.inlanefreight.htb. 604800 IN A 10.10.1.2
+    printer.admin.internal.inlanefreight.htb. 604800 IN A 10.10.1.3
+    dc3.internal.inlanefreight.htb. 604800 IN A     10.10.1.5
+    ns.internal.inlanefreight.htb. 604800 IN A      127.0.0.1
+    ns2.internal.inlanefreight.htb. 604800 IN A     10.10.34.136
+    ws1.internal.inlanefreight.htb. 604800 IN A     10.10.2.11
+    ws2.internal.inlanefreight.htb. 604800 IN A     10.10.3.12
+
+    [!] Answer: "27"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Virtual Hosts]
+
+[*] Target: 10.129.66.235 
+
+[*] vHosts needed for these questions: www.inlanefreight.htb
+
+[Question 1] Enumerate the target and find a vHost that contains flag No. 1. Submit the flag value as your answer (in the format HTB{DATA}).
+
+    -   A virtual host (vHost) is a feature that allows multiple websites to be hosted on a single server.
+
+    -   For IP-based virtual hosting, multiple IP addresses can be assigned to a single host, and different servers can be addressed under different IP addresses.
+
+    -   For name-based virtual hosting, multiple websites share the same IP address, and the web server uses the domain name specified in the client's request to determine which website to serve
+
+    =>  In this case, they gave us 1 IP in their private network and one of its FQDN (www.inlanefreight.htb), so I think this 's some kind of name-based virtual hosting, maybe they just want us to enumerate subdomain
+
+    =>  For example, we can't just go to private.inlanefreight.htb (because there is no name server for this domain), the request needs to be sent to the IP address 10.129.66.235, then the server must treat the request as if it had been sent to "private.inlanefreight.htb"
+
+    =>  How can we do that? Just look at this " curl http://10.129.66.235  -H "Host: private.inlanefreight.htb" "
+
+        * Connected to 10.129.66.235 (10.129.66.235) port 80 (#0)
+        > GET / HTTP/1.1
+        > Host: private.inlanefreight.htb
+        > User-Agent: curl/7.88.1
+        > Accept: */*
+
+    [#] FFUF is good to brute force subdomain in this situation
+
+    # ffuf -w namelist.txt -u http://10.129.66.235 -H "HOST: FUZZ.inlanefreight.htb" -fs 10918
+
+        [?] -w <wordlist>: Set wordlist
+
+        [?] -u <URL>: Set URL
+
+        [?] -H "<header: value>": add Header in the request
+
+        [?] -f <content-lenght>: filter by size option to discard the default response as it will always have the same size. 
+
+            => How can I know it's 10918? Nah! I tried without -fs and saw tons of 10918
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+
+
+        v2.0.0-dev
+        ______________________________________________
+
+
+        :: Method           : GET
+        :: URL              : http://10.129.66.235
+        :: Wordlist         : FUZZ: /home/bigbox/SecLists/Discovery/DNS/namelist.txt
+        :: Header           : Host: FUZZ.inlanefreight.htb
+        :: Follow redirects : false
+        :: Calibration      : false
+        :: Timeout          : 10
+        :: Threads          : 40
+        :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+        :: Filter           : Response size: 10918
+        ________________________________________________
+
+        [Status: 200, Size: 102, Words: 3, Lines: 6, Duration: 222ms]
+            * FUZZ: ap
+
+        [Status: 200, Size: 103, Words: 3, Lines: 6, Duration: 227ms]
+            * FUZZ: app
+
+        [Status: 200, Size: 100, Words: 3, Lines: 6, Duration: 216ms]
+            * FUZZ: citrix
+
+        [Status: 200, Size: 94, Words: 3, Lines: 6, Duration: 220ms]
+            * FUZZ: customers
+
+        [Status: 200, Size: 95, Words: 2, Lines: 6, Duration: 400ms]
+            * FUZZ: dmz
+
+        [Status: 200, Size: 96, Words: 2, Lines: 6, Duration: 419ms]
+            * FUZZ: www2
+
+        :: Progress: [151265/151265] :: Job [1/1] :: 75 req/sec :: Duration: [0:20:22] :: Errors: 0 ::
+
+    => Oke let's find out the content of "ap" subdomain
+
+    # curl http://10.129.1.177 -H "Host: ap.inlanefreight.htb" -i
+
+        ...
+
+        <!doctype html>
+        <head>FLAG No.1:</head>
+        <body>
+                HTB{h8973hrpiusnzjoie7zrou23i4zhmsxi8732zjso}
+        </body>
+
+    [!] Answer: "HTB{h8973hrpiusnzjoie7zrou23i4zhmsxi8732zjso}"
+
+[Question 2] Enumerate the target and find a vHost that contains flag No. 2. Submit the flag value as your answer (in the format HTB{DATA}).
+
+    #  curl http://10.129.1.177 -H "Host: app.inlanefreight.htb" -i
+
+        ...
+
+        <!doctype html>
+        <head>FLAG No.2:</head>
+        <body>
+                HTB{u23i4zhmsxi872z3rn98h7nh2sxnbgriusd32zjso}
+        </body>
+            
+    [!] Answer: "HTB{u23i4zhmsxi872z3rn98h7nh2sxnbgriusd32zjso}"
+
+[Question 3] Enumerate the target and find a vHost that contains flag No. 3. Submit the flag value as your answer (in the format HTB{DATA}).
+
+    # curl http://10.129.1.177 -H "Host: citrix.inlanefreight.htb" -i
+
+        ...
+
+        <!doctype html>
+        <head>FLAG No.3:</head>
+        <body>
+                HTB{Fl4gF0uR_o8763tznb4xou7zhgsniud7gfi734}
+        </body>
+
+    [!] Answer: "HTB{Fl4gF0uR_o8763tznb4xou7zhgsniud7gfi734}"
+
+[Question 4] Enumerate the target and find a vHost that contains flag No. 4. Submit the flag value as your answer (in the format HTB{DATA}). 
+
+    # curl http://10.129.1.177 -H "Host: customers.inlanefreight.htb" -i
+
+        ...
+
+        <!doctype html>
+        <head>FLAG No.4:</head>
+        <body>
+                HTB{bzghi7tghin2u76x3ghdni62higz7x3s}
+        </body>
+
+    [!] Answer: "HTB{bzghi7tghin2u76x3ghdni62higz7x3s}"
+
+[Question 5] Find the specific vHost that starts with the letter "d" and submit the flag value as your answer (in the format HTB{DATA}).
+
+    # curl http://10.129.1.177 -H "Host: dmz.inlanefreight.htb" -i
+
+        ...
+
+        <!doctype html>
+        <head>FLAG</head>
+        <body>
+                HTB{7zbnr4i3n7zhrxn347zhh3dnrz4dh7zdjfbgn6d}
+        </body>
+
+    [!] Answer: "HTB{7zbnr4i3n7zhrxn347zhh3dnrz4dh7zdjfbgn6d}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Information Gathering - Web - Skills Assessment]
+
+[Question 1] What is the registrar IANA ID number for the githubapp.com domain?
+
+    # whois githubapp.com | grep IANA
+        
+        Registrar IANA ID: 292
+        Registrar IANA ID: 292
+
+    [!] Answer: "292"
+
+[Question 2] What is the last mailserver returned when querying the MX records for githubapp.com?
+
+    # dig mx githubapp.com @8.8.8.8            
+
+        ...
+
+        ;; ANSWER SECTION:
+        githubapp.com.          3600    IN      MX      10 aspmx.l.google.com.
+        githubapp.com.          3600    IN      MX      20 alt1.aspmx.l.google.com.
+        githubapp.com.          3600    IN      MX      20 alt2.aspmx.l.google.com.
+        githubapp.com.          3600    IN      MX      30 aspmx2.googlemail.com.
+        githubapp.com.          3600    IN      MX      30 aspmx3.googlemail.com.
+        githubapp.com.          3600    IN      MX      30 aspmx4.googlemail.com.
+        githubapp.com.          3600    IN      MX      30 aspmx5.googlemail.com.
+
+        ;; Query time: 72 msec
+        ;; SERVER: 8.8.8.8#53(8.8.8.8) (UDP)
+        ;; WHEN: Tue May 09 02:35:46 EDT 2023
+        ;; MSG SIZE  rcvd: 218
+
+    [!] Answer: "aspmx5.googlemail.com"
+
+[Question 3]  Perform active infrastructure identification against the host https://i.imgur.com. What server name is returned for the host?
+
+    # curl https://i.imgur.com -I                                 
+
+        HTTP/2 302 
+        retry-after: 0
+        location: https://imgur.com/
+        accept-ranges: bytes
+        date: Tue, 09 May 2023 06:59:29 GMT
+        ...
+        server: cat factory 1.0
+        content-length: 0
+
+    [!] Answer: "cat factory 1.0"
+
+[Question 4]  Perform subdomain enumeration against the target githubapp.com. Which subdomain has the word 'triage' in the name?
+
+    [Step 1]   Go to https://www.virustotal.com/gui/home/search then search for "githubapp.com"
+
+    [Step 2]   Go to https://www.virustotal.com/gui/domain/githubapp.com/relations then check for Subdomains => "data-triage-reports.githubapp.com"
+
+    [!] Answer: "data-triage-reports.githubapp.com"

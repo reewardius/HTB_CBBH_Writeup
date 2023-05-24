@@ -1,0 +1,183 @@
+[HyperText Transfer Protocol (HTTP)]
+
+[*] Target: 188.166.144.53:32683
+
+[Question 1]  To get the flag, start the above exercise, then use cURL to download the file returned by '/download.php' in the server shown above.
+
+    # curl -O -s http://188.166.144.53:32683/download.php
+
+        [?] -O: Download file 
+
+        [?] -s: Silent mode, no output
+
+    # cat download.php => "HTB{64$!c_cURL_u$3r}"
+    
+    [!] Answer: "HTB{64$!c_cURL_u$3r}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[HTTP Requests and Responses]
+
+[*] Target: 157.245.41.35:31761
+
+[Question 1] What is the HTTP method used while intercepting the request? (case-sensitive)
+
+    # curl 157.245.41.35:31761 -v => "... GET / HTTP/1.1 ..."
+
+        [?] -v: Verbose mode, show all requests and responses
+
+    [!] Answer: "GET"
+
+[Question 2] Send a GET request to the above server, and read the response headers to find the version of Apache running on the server, then submit it as the answer. (answer format: X.Y.ZZ)
+
+    # curl 157.245.41.35:31761 -I => "... Server: Apache/2.4.41 (Ubuntu) ..."
+
+        [?]  -I: Only show the response header
+
+    [!] Answer: "2.4.41"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[HTTP Headers]
+
+[*] Target: 209.97.184.215:32197
+
+[Question 1] The server above loads the flag after the page is loaded. Use the Network tab in the browser devtools to see what requests are made by the page, and find the request to the flag.
+
+    -   Go to http://209.97.184.215:32197/, open Network tab then reload the webpage 
+
+        => file "flag_327a6c4304ad5938eaf0efb6cc3e53dc.txt" in the "Name" column
+
+        => "Preview": "HTB{p493_r3qu3$t$_m0n!t0r}"
+
+    [!] Answer: "HTB{p493_r3qu3$t$_m0n!t0r}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[GET]
+
+[*] Target: 157.245.38.221:30643
+
+[*] Authenticate to 157.245.38.221 with user "admin" and password "admin"
+
+[Question 1] The exercise above seems to be broken, as it returns incorrect results. Use the browser devtools to see what request it is sending when we search, and use cURL to search for 'flag' and obtain the flag.
+
+    [Step 1] Gather "admin" user's identity
+
+        # curl -u admin:admin http://157.245.38.221:30643/ -v => "... Authorization: Basic YWRtaW46YWRtaW4= ..."
+
+            [?] -u <username:password> : Set username and password (used with GET method)
+
+    [Step 2] Gather information about search api 
+
+        -   Open Network tab then enter "Berlin" into the web's search function
+
+        =>  "search.php?search=Berlin" appear in the "Name" column
+
+        =>  This web transfer user's input to the file "search.php" in server's back-end to process
+
+    [Step 3] Search for 'flag' using curl
+
+        #   curl -H "Authorization: Basic YWRtaW46YWRtaW4=" http://157.245.38.221:30643/search.php?search=flag -i => "flag: HTB{curl_g3773r}"
+
+            [?] -H '<"Header: Content">': Set request header
+
+            [?] -i: Only show the response header and body
+
+    [!] Answer: "HTB{curl_g3773r}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[POST]
+
+[*] Target: 157.245.38.221:32537
+
+[*] Authenticate to 157.245.38.221 with user "admin" and password "admin"
+
+[Question 1]  Obtain a session cookie through a valid login, and then use the cookie with cURL to search for the flag through a JSON POST request to '/search.php'
+
+    [Step 1] Gather "admin" user's cookie
+
+        -   Using Burpsuite to intercept the login request
+
+            POST / HTTP/1.1
+            Host: 157.245.38.221:32537
+            ...
+            Cookie: PHPSESSID=797b37bfg35vtmgefcjfi70ra3
+            Upgrade-Insecure-Requests: 1
+
+            username=admin&password=admin
+
+        => Cookie: "PHPSESSID=797b37bfg35vtmgefcjfi70ra3"
+
+    [Step 2] Gather in formation about /search.php 
+
+        -   Using Burpsuite to intercept the search city request
+
+            POST /search.php HTTP/1.1
+            Host: 157.245.38.221:32537
+            ...
+            Content-Type: application/json
+            ...
+            Cookie: PHPSESSID=797b37bfg35vtmgefcjfi70ra3
+
+            {"search":"Berlin"}
+
+        => Header: "Content-Type: application/json"; Body: "{"search":"Berlin"}"
+
+    [Step 3] Search for 'flag' using curl
+
+        # curl -H "Content-Type: application/json" -d '{"search":"flag"}' -b "PHPSESSID=797b37bfg35vtmgefcjfi70ra3" http://157.245.38.221:32537/search.php -I => "... ["flag: HTB{p0$t_r3p34t3r}"]"
+
+            [?] -d '<"parameter" : "input">': Specify the data that is being sent with the POST request
+
+            [?] -b '<cookie>': Set request cookie
+
+    [!] Answer: "HTB{p0$t_r3p34t3r}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[CRUD API]
+
+[*] Target: http://188.166.144.53:31663/api.php/city/
+
+[Question 1] First, try to update any city's name to be 'flag'. Then, delete any city. Once done, search for a city named 'flag' to get the flag.
+
+    [Step 1] Update a city's name to be 'flag'
+
+        -   Checking the response (using Burpsuite): 
+
+            HTTP/1.1 200 OK
+            Date: Thu, 04 May 2023 16:54:38 GMT
+            Server: Apache/2.4.41 (Ubuntu)
+            Content-Length: 47
+            Connection: close
+            Content-Type: text/html; charset=UTF-8
+
+            [{"city_name":"Detroit","country_name":"(US)"}]
+
+            => Update "[{"city_name":"Detroit","country_name":"(US)"}]"
+
+        # curl -X PUT http://188.166.144.53:31663/api.php/city/Detroit -d '{"city_name":"flag","country_name":"(US)"}'
+
+            [?] -X <method>: Specify the HTTP method to be used 
+
+    [Step 2] Delete a city
+
+        # curl -X DELETE http://188.166.144.53:31663/api.php/city/Memphis
+
+    [Step 3] Capture the flag
+
+        # curl http://188.166.144.53:31663/api.php/city/flag => [{"city_name":"flag","country_name":"HTB{crud_4p!_m4n!pul4t0r}"}] 
+
+    [!] Answer: "HTB{crud_4p!_m4n!pul4t0r}"
